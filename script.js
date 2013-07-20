@@ -7,6 +7,16 @@
 
 var cursorVisible = true;
 
+var spellsInstruction = false;
+
+function ShowSpellsInstructions () {
+	if (spellsInstruction)
+	{
+		return;
+	}
+	spellsInstruction = true;
+	document.getElementById("how").src = "how_to_play_spells.png";
+}
 
 // Canvas and context declaration
 var canvas = document.getElementById('Canvas2D');
@@ -587,14 +597,17 @@ function SetUpArea () {
 		randX = Math.floor(Math.random() * 29 + 1);
 		randY = Math.floor(Math.random() * 29 + 1);
 		SetBySize(randX, randY, 4, 4, EMPTY, "", "#000000");
+		//SetBySize(randX, randY, 4, 4, FLOOR, "nice", "#FF0000");
 
 		randX = Math.floor(Math.random() * 28 + 1);
 		randY = Math.floor(Math.random() * 32 + 1);
 		SetBySize(randX, randY, 5, 1, EMPTY, "", "#000000");
+		//SetBySize(randX, randY, 5, 1, FLOOR, "nice", "#00FF00");
 
 		randX = Math.floor(Math.random() * 32 + 1);
 		randY = Math.floor(Math.random() * 28 + 1);
 		SetBySize(randX, randY, 1, 5, EMPTY, "", "#000000");
+		//SetBySize(randX, randY, 1, 5, FLOOR, "nice", "#0000FF");
 	}
 	//Center Room
 	SetByXY(15, 15, 19, 19, EMPTY, "", "#000000");
@@ -759,7 +772,7 @@ function SetTile (X, Y, type, tileset, color) {
 	}
 	if (renderReady)
 	{
-		//ResetConnectionsXYZ(X, Y, Z, X, Y, Z);
+		ResetConnectionsXY(X, Y, X, Y);
 	}
 	
 }
@@ -913,7 +926,7 @@ function SetByXY (startX, startY, endX, endY, type, tileset, color) {
 	}
 	if (renderReady)
 	{
-		//ResetConnectionsXYZ(startX, startY, startZ, endX, endY, endZ);
+		ResetConnectionsXY(startX, startY, endX, endY);
 	}
 }
 
@@ -945,7 +958,7 @@ function SetBySize (startX, startY, width, height, type, tileset, color) {
 	}
 	if (renderReady)
 	{
-		//ResetConnectionsXYZ(startX, startY, startZ, startX + width, startY + height, startY + depth);
+		ResetConnectionsXY(startX, startY, startX + width, startY + height);
 	}
 	
 }
@@ -991,16 +1004,17 @@ function SetByRect (startX, startY, endX, endY, type, tileset, color) {
 	}
 	if (renderReady)
 	{
-		//ResetConnectionsXYZ(startX, startY, startZ, endX, endY, endZ);
+		ResetConnectionsXY(startX, startY, endX, endY);
 	}
 	
 }
 
 // Does it with 1 tile buffer around entire thing, and starting at the very top of the area
 // (startZ is ignored, but I kept it in for no good reason)
-function ResetConnectionsXYZ(startX, startY, startZ, endX, endY, endZ) {
+function ResetConnectionsXY(startX, startY, endX, endY) {
 	//ALSO: not 3d
-	return; //Pathfinding
+	// SHOULD BE 2D NOW
+	//return; //Pathfinding
 	if (startX > endX)
 	{
 		startX = -(endX = (startX += endX) - endX) + startX;
@@ -1008,10 +1022,6 @@ function ResetConnectionsXYZ(startX, startY, startZ, endX, endY, endZ) {
 	if (startY > endY)
 	{
 		startY = -(endY = (startY += endY) - endY) + startY;
-	}
-	if (startZ > endZ)
-	{
-		startZ = -(endZ = (startZ += endZ) - endZ) + startZ;
 	}
 	for (var i = startX - 1; i <= endX + 1; i++)
 	{
@@ -1021,14 +1031,8 @@ function ResetConnectionsXYZ(startX, startY, startZ, endX, endY, endZ) {
 			{
 				if (j >= 0 && j <= AREA_HEIGHT - 1)
 				{
-					for (var k = 0; k <= endZ + 1; k++)
-					{
-						if (k >= 0 && k <= AREA_DEPTH - 1)
-						{
-							area[i][j][k].edges.length = 0;
-							SetUpConnections(area[i][j][k]);
-						}
-					}
+					area[i][j].edges.length = 0;
+					SetUpConnections(area[i][j]);
 				}
 			}
 		}
@@ -1222,7 +1226,10 @@ function DrawTileContent (tile)
 		for (var c = 0; c < tile.effects.length; c ++)
 		{
 			var effect = tile.effects[c];
-			ectx.drawImage(filteredImages[GetEffectImage(effect.imageList[0])].GetColor(effect.color), 0, 0, 30, 30, 30 * tile.x, 30 * tile.y, 30, 30);
+			if (effect.imageList[0] != "")
+			{
+				ectx.drawImage(filteredImages[GetEffectImage(effect.imageList[0])].GetColor(effect.color), 0, 0, 30, 30, 30 * tile.x, 30 * tile.y, 30, 30);
+			}
 		}
 	}
 }
@@ -1553,7 +1560,6 @@ function StartLevel (nLevel) {
 			}
 			return false;
 		});
-		//***
 		break;
 		case 3: // East A - Focus on "FLOAT"
 
@@ -1657,8 +1663,8 @@ function Update () {
 	requestAnimFrame(Update);
 };
 
-function KeyTimer() {
-	if ((Number(wKey) + Number(aKey) + Number(sKey) + Number(dKey)) == 1)
+function KeyTimer () {
+	if (Number(wKey) + Number(aKey) + Number(sKey) + Number(dKey) + Number(upKey) + Number(downKey) + Number(leftKey) + Number(rightKey) == 1)
 	{
 		inputDelay --;
 		if (inputDelay <= 0)
@@ -1682,29 +1688,49 @@ function Control () {
 	{
 		return;
 	}*/
-	if (aKey && !dKey)
+	if (aKey)
 	{
 		player.moveX = -1;
+		return;
 	}
-	if (dKey && !aKey)
+	if (dKey)
 	{
 		player.moveX = 1;
+		return;
 	}
-	if (!dKey && !aKey)
-	{
-		player.moveX = 0;
-	}
-	if (wKey && !sKey)
+	if (wKey)
 	{
 		player.moveY = -1;
+		return;
 	}
-	if (sKey && !wKey)
+	if (sKey)
 	{
 		player.moveY = 1;
+		return;
 	}
-	if (!sKey && !wKey)
+	if (upKey)
 	{
-		player.moveY = 0;
+		AttackTo(player, player.x, player.y - 1);
+		EffectSlashUp(player);
+		return;
+	}
+	if (downKey)
+	{
+		AttackTo(player, player.x, player.y + 1);
+		EffectSlashDown(player);
+		return;
+	}
+	if (leftKey)
+	{
+		AttackTo(player, player.x - 1, player.y);
+		EffectSlashLeft(player);
+		return;
+	}
+	if (rightKey)
+	{
+		AttackTo(player, player.x + 1, player.y);
+		EffectSlashRight(player);
+		return;
 	}
 }
 
@@ -1867,6 +1893,10 @@ function EntityMove (entity, x, y) {
 	{
 		return false;
 	}
+	if (area[ex + x][ey + y].entities.length != 0)
+	{
+		return false;
+	}
 	if (area[ex + x][ey + y].type == FLOOR)
 	{
 		ChangePosition(entity, ex + x, ey + y);
@@ -1974,25 +2004,29 @@ function FindPath (entity, destination) {
 		closedSet.push(openSet.shift());
 		for (var i = 0; i < current.tile.edges.length; i ++)
 		{
-			var neighbor = new PathNode(current.tile.edges[i], destination, current.cost + 1, current);
-			var dup = CheckForDuplicate(closedSet, neighbor);
-			var closedCost = 9999;
-			if (dup != -1)
+			//Cannot move to a tile already containing an entity
+			if (current.tile.edges[i].entities.length == 0 || current.tile.edges[i] == destination)
 			{
-				closedCost = closedSet[dup].cost;
-				if (neighbor.cost >= closedCost)
+				var neighbor = new PathNode(current.tile.edges[i], destination, current.cost + 1, current);
+				var dup = CheckForDuplicate(closedSet, neighbor);
+				var closedCost = 9999;
+				if (dup != -1)
 				{
-					continue;
+					closedCost = closedSet[dup].cost;
+					if (neighbor.cost >= closedCost)
+					{
+						continue;
+					}
 				}
-			}
-			var openDup = CheckForDuplicate(openSet, neighbor);
-			if (openDup == -1)
-			{
-				openSet.push(neighbor);
-			}
-			else if (neighbor.cost < openSet[openDup].cost)
-			{
-				openSet[openDup] = neighbor;
+				var openDup = CheckForDuplicate(openSet, neighbor);
+				if (openDup == -1)
+				{
+					openSet.push(neighbor);
+				}
+				else if (neighbor.cost < openSet[openDup].cost)
+				{
+					openSet[openDup] = neighbor;
+				}
 			}
 		}
 	}
@@ -2670,22 +2704,26 @@ function DoKeyDown (e) {
 		return;
 	}
 	if (e.keyCode == 38) {
-		EffectSlashUp();
+		//EffectSlashUp();
+		upKey = true;
 		//wKey = true;
 		return;
 	}
 	if (e.keyCode == 40) {
-		EffectSlashDown();
+		//EffectSlashDown();
+		downKey = true;
 		//sKey = true;
 		return;
 	}
 	if (e.keyCode == 37) {
-		EffectSlashLeft();
+		//EffectSlashLeft();
+		leftKey = true;
 		//aKey = true;
 		return;
 	}
 	if (e.keyCode == 39) {
-		EffectSlashRight();
+		//EffectSlashRight();
+		rightKey = true;
 		//dKey = true;
 		return;
 	}
@@ -2764,19 +2802,19 @@ function DoKeyUp (e) {
 		return;
 	}
 	if (e.keyCode == 38) {
-		//wKey = false;
+		upKey = false;
 		return;
 	}
 	if (e.keyCode == 40) {
-		//sKey = false;
+		downKey = false;
 		return;
 	}
 	if (e.keyCode == 37) {
-		//aKey = false;
+		leftKey = false;
 		return;
 	}
 	if (e.keyCode == 39) {
-		//dKey = false;
+		rightKey = false;
 		return;
 	}
 	if (e.keyCode == 13) {
