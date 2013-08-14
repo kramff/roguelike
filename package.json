@@ -1,0 +1,11 @@
+{
+  "name": "roguelike",
+  "main": "index.html",
+  "description": "roguelike game",
+  "window": {
+    "width": 645,
+    "height": 690,
+    "title": "Roguelike Standalone App",
+    "toolbar": false
+  }
+}

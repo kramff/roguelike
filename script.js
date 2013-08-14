@@ -53,6 +53,13 @@ var messages = [];
 var effectList = [];
 var itemList = [];
 
+//Turn based timing stuff
+var playerMoved = false;
+var npcMoveWait = 0;
+var playerMoveWait = 0;
+
+var inputDelay = 10;
+
 // Rendering data arrays
 //var layerList = []; // For DrawLayer objects
 
@@ -75,7 +82,8 @@ var targetX = 30;
 var targetY = 30;
 
 // Mouse position and movement key booleans
-var inputDelay = 10;
+
+var keyPressedOrder = [];
 
 var mouseX = 250;
 var mouseY = 250;
@@ -295,6 +303,10 @@ function PathNode (tile, dest, cost, parent) {
 	this.distEst = DistanceEstimate(tile, dest);
 }
 
+// Entity states
+var WANDER = 0;
+var ATTACK = 1; 
+
 // Entity constructor function
 // An Entity is a person or creature in the world
 function Entity (name, image, color, x, y) {
@@ -372,6 +384,9 @@ function Entity (name, image, color, x, y) {
 	{
 		DrawTileContent(this.GetTile());
 	}
+	//decision making stuff
+	this.state = WANDER;
+	this.target = undefined;
 }
 
 
@@ -537,8 +552,10 @@ function SetUpArea () {
 			area[i].push(new Tile(EMPTY, "", "#000000", i, j));
 		}
 	}
+	var wallStyle = "double";
+	var wallColor = "#B0B0B0"
 
-	SetByRect(0, 0, 34, 34, WALL, "double", "#404040");
+	SetByRect(0, 0, 34, 34, WALL, wallStyle, wallColor);
 	var randX = 0;
 	var randY = 0;
 	var l = 0;
@@ -547,11 +564,11 @@ function SetUpArea () {
 	{
 		randX = Math.floor(Math.random() * 33 + 1);
 		randY = Math.floor(Math.random() * 33 + 1);
-		SetTile(randX, randY, WALL, "double", "#404040");
+		SetTile(randX, randY, WALL, wallStyle, wallColor);
 		for (l = 0 - Math.random() * 3; l < 5; l++)
 		{
 			if (Math.random() > 0.5) randX = (Math.random() > 0.5) ? randX + 1 : randX - 1; else randY = (Math.random() > 0.5) ? randY + 1 : randY - 1;
-			SetTile(randX, randY, WALL, "double", "#404040");
+			SetTile(randX, randY, WALL, wallStyle, wallColor);
 		}
 	}
 	//Wall sections near corners
@@ -559,35 +576,35 @@ function SetUpArea () {
 	{
 		randX = 1;
 		randY = 1;
-		SetTile(randX, randY, WALL, "double", "#404040");
+		SetTile(randX, randY, WALL, wallStyle, wallColor);
 		for (l = 0 - Math.random() * 3; l < 5; l++)
 		{
 			if (Math.random() > 0.5) randX = (Math.random() > 0.5) ? randX + 1 : randX - 1; else randY = (Math.random() > 0.5) ? randY + 1 : randY - 1;
-			SetTile(randX, randY, WALL, "double", "#404040");
+			SetTile(randX, randY, WALL, wallStyle, wallColor);
 		}
 		randX = 33;
 		randY = 1;
-		SetTile(randX, randY, WALL, "double", "#404040");
+		SetTile(randX, randY, WALL, wallStyle, wallColor);
 		for (l = 0 - Math.random() * 3; l < 5; l++)
 		{
 			if (Math.random() > 0.5) randX = (Math.random() > 0.5) ? randX + 1 : randX - 1; else randY = (Math.random() > 0.5) ? randY + 1 : randY - 1;
-			SetTile(randX, randY, WALL, "double", "#404040");
+			SetTile(randX, randY, WALL, wallStyle, wallColor);
 		}
 		randX = 33;
 		randY = 33;
-		SetTile(randX, randY, WALL, "double", "#404040");
+		SetTile(randX, randY, WALL, wallStyle, wallColor);
 		for (l = 0 - Math.random() * 3; l < 5; l++)
 		{
 			if (Math.random() > 0.5) randX = (Math.random() > 0.5) ? randX + 1 : randX - 1; else randY = (Math.random() > 0.5) ? randY + 1 : randY - 1;
-			SetTile(randX, randY, WALL, "double", "#404040");
+			SetTile(randX, randY, WALL, wallStyle, wallColor);
 		}
 		randX = 1;
 		randY = 33;
-		SetTile(randX, randY, WALL, "double", "#404040");
+		SetTile(randX, randY, WALL, wallStyle, wallColor);
 		for (l = 0 - Math.random() * 3; l < 5; l++)
 		{
 			if (Math.random() > 0.5) randX = (Math.random() > 0.5) ? randX + 1 : randX - 1; else randY = (Math.random() > 0.5) ? randY + 1 : randY - 1;
-			SetTile(randX, randY, WALL, "double", "#404040");
+			SetTile(randX, randY, WALL, wallStyle, wallColor);
 		}
 	}
 
@@ -612,7 +629,7 @@ function SetUpArea () {
 	//Center Room
 	SetByXY(15, 15, 19, 19, EMPTY, "", "#000000");
 	//Empty to Floor, flooding out from center
-	FloodFill(17, 17, 0);
+	FloodFill(17, 17);
 
 	//Empty to Wall 
 	for (i = 0; i < AREA_WIDTH; i++)
@@ -700,10 +717,36 @@ function SetUpEntities () {
 	//targetZ = player.z;
 	promptMessage = new Message(">_", player);
 
+	for (var i = 0; i < 300; i++)
+	{
+		if (entityList.length < 100)
+		{
+			var randX = Math.floor(Math.random() * 35);
+			var randY = Math.floor(Math.random() * 35);
+			if (area[randX][randY].type == FLOOR && area[randX][randY].entities.length == 0)
+			{
+				NewRandomEntity(randX, randY);
+			}
+		}
+		
+	}
+
 	//new Entity("Skeleton", "A", "#FFFFFF", 5, 13, 18)
 	//new Entity("FireElemental", "B", "#FF0000", 2, 3, 15);
 	//new Entity("GelatinousCube", "C", "#88FF88", 18, 9, 19);
 	//new Entity("Snake", "D", "#00FF00", 15, 4, 19);
+}
+
+function NewRandomEntity (X, Y) {
+	var name = "";
+    var possibleFirst = "ABCDE"
+    var possible = "abcdefghijklmnopqrstuvwxyz";
+    name += possibleFirst.charAt(Math.floor(Math.random() * possibleFirst.length));
+    for (var i = 0 - Math.random() * 3; i < 3; i++)
+    {
+        name += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    new Entity(name, name[0], RandomColor(), X, Y);
 }
 
 function ChangeLevel (num) {
@@ -711,14 +754,6 @@ function ChangeLevel (num) {
 	levelNum = num;
 }
 
-// Looks like sparks around an entity that match its color
-/*
-function LightningAroundEntity (entity) {
-	new Effect(["lightning1", "lightning2", "lightning3", "lightning2", "lightning1"], 3, entity.color, entity.x, entity.y - 1);
-	new Effect(["lightning1", "lightning2", "lightning3", "lightning2", "lightning1"], 3, entity.color, entity.x, entity.y + 1);
-	new Effect(["lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1"], 3, entity.color, entity.x - 1, entity.y);
-	new Effect(["lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1"], 3, entity.color, entity.x + 1, entity.y);
-}*/
 
 /*
 function ItemsByXY (startX, startY, endX, endY, type, image, color) {
@@ -789,7 +824,7 @@ function FloodFill (X, Y) {
 	{
 		curTile.type = FLOOR;
 		curTile.tileset = "simple";
-		curTile.color = "#FFFFFF";
+		curTile.color = "#404040";
 		FloodFill(X, Y-1);
 		FloodFill(X+1, Y);
 		FloodFill(X, Y+1);
@@ -808,7 +843,7 @@ function FloodFillB (X, Y) {
 	{
 		curTile.type = WALL;
 		curTile.tileset = "double";
-		curTile.color = "#404040";
+		curTile.color = "#B0B0B0";
 		/*FloodFillB(X, Y-1);
 		FloodFillB(X+1, Y);
 		FloodFillB(X, Y+1);
@@ -1651,7 +1686,40 @@ function Update () {
 	}
 	//Control();
 	//Action();
-	KeyTimer();
+	//KeyTimer();
+	if (playerMoved)
+	{
+		if (npcMoveWait <= 0)
+		{
+			Action();
+			playerMoveWait = 6;
+			npcMoveWait = 6;
+			playerMoved = false;
+		}
+		else
+		{
+			npcMoveWait -= 1;
+		}
+	}
+	else if (!playerMoved)
+	{
+		if (playerMoveWait <= 0)
+		{
+			var playerTookTurn = Control();
+			if (playerTookTurn)
+			{
+				playerMoveWait = 6;
+				npcMoveWait = 6;
+				playerMoved = true;
+			}
+		}
+		else
+		{
+			playerMoveWait -= 1;
+		}
+		
+	}
+
 	ItemAction(); //Only use for glowing items?
 	ProcessEffects();
 	Render();
@@ -1662,7 +1730,7 @@ function Update () {
 	}*/
 	requestAnimFrame(Update);
 };
-
+/*
 function KeyTimer () {
 	if (Number(wKey) + Number(aKey) + Number(sKey) + Number(dKey) + Number(upKey) + Number(downKey) + Number(leftKey) + Number(rightKey) == 1)
 	{
@@ -1680,14 +1748,28 @@ function KeyTimer () {
 		inputDelay = 0;
 	}
 }
-
+*/
 
 // Player movement with WASD
 function Control () {
+	if (keyPressedOrder.length > 0)
+	{
+		if (player.HP > 0)
+		{
+			EntityAction(player, keyPressedOrder[0]);
+		}
+		return true;
+	}
+	else
+	{
+		EntityAction(player, "");
+		return false;
+	}
 	/*if (newLevel)
 	{
 		return;
 	}*/
+	/*
 	if (aKey)
 	{
 		player.moveX = -1;
@@ -1731,17 +1813,109 @@ function Control () {
 		AttackTo(player, player.x + 1, player.y);
 		EffectSlashRight(player);
 		return;
+	}*/
+}
+
+// "take a turn" based on key input string
+function EntityAction (entity, key) {
+	switch (key)
+	{
+		// Movement
+		case "w":
+		EntityMove(entity, 0, -1);
+		break;
+		case "a":
+		EntityMove(entity, -1, 0);
+		break;
+		case "s":
+		EntityMove(entity, 0, 1);
+		break;
+		case "d":
+		EntityMove(entity, 1, 0);
+		break;
+		//Attacking
+		case "up":
+		AttackTo(entity, entity.x, entity.y - 1);
+		EffectSlashUp(entity);
+		break;
+		case "down":
+		AttackTo(entity, entity.x, entity.y + 1);
+		EffectSlashDown(entity);
+		break;
+		case "left":
+		AttackTo(entity, entity.x - 1, entity.y);
+		EffectSlashLeft(entity);
+		break;
+		case "right":
+		AttackTo(entity, entity.x + 1, entity.y);
+		EffectSlashRight(entity);
+		break;
+		case "":
+		default:
+		//Do nothing
+		break;
 	}
 }
 
+
 // Iterate through entities, do movement and other per-frame interactions
+// NOW TURN BASED
 function Action () {
 	//return; // lazy fix
 	for (var i = 0; i < entityList.length; i++)
 	{
 		var entity = entityList[i];
-		var curTile = entity.GetTile();
-		FindPath(entity, player.GetTile());
+		if (entity != player)
+		{
+			// Decide what to do (make a Think() function?)
+			//EntityAction(entity, "")
+			var npcKey = "";
+			if (entity.state == WANDER)
+			{
+				npcKey = "wasd"[Math.floor(Math.random() * 4)];
+				var targetTry = LookForNewTarget(entity, 2);
+				if (i == 5)
+				{
+					Debug(targetTry);
+				}
+				if (targetTry)
+				{
+					FindPath(entity, targetTry.GetTile())
+					if (entity.foundPath)
+					{
+						entity.state = ATTACK;
+						entity.target = targetTry
+					}
+				}
+			}
+			if (entity.state == ATTACK && entity.target)
+			{
+				if (entity.path[entity.path.length - 1] != entity.target.GetTile())
+				{
+					FindPath(entity, entity.target);
+				}
+				if (entity.path[0] == entity.GetTile())
+				{
+					entity.path.shift();
+				}
+				if (entity.path[0] == entity.target.GetTile())
+				{
+					//attack target
+					npcKey = PathToKeyAttack(entity, entity.path[0]);
+				}
+				else if (entity.path.length > 0)
+				{
+					//step to [0]
+					npcKey = PathToKeyMove(entity, entity.path[0]);
+				}
+			}
+			EntityAction(entity, npcKey);
+			
+		}
+
+		
+		//var curTile = entity.GetTile();
+		//FindPath(entity, player.GetTile());
 
 		// Events
 		/*if (entity.events.length != 0)
@@ -1757,6 +1931,7 @@ function Action () {
 		//{
 			//if (entity.moveDelay <= 0)
 			//{
+				/*
 				if (entity.path.length > 0)
 				{
 					if (entity.path[0] == curTile)
@@ -1785,6 +1960,7 @@ function Action () {
 					//	entity.moveDelay = entity.MAX_MOVE_DELAY;
 					//}
 				}
+				*/
 			//}
 			//else
 			//{
@@ -1843,6 +2019,85 @@ function Action () {
 				}
 			}
 		}*/
+	}
+}
+
+// entity and next path tile -> key to simulate press
+function PathToKeyMove (entity, tile)
+{
+	if (entity.x == tile.x)
+	{
+		if (entity.y - 1 == tile.y)
+		{
+			return "w";
+		}
+		if (entity.y + 1 == tile.y)
+		{
+			return "s";
+		}
+	}
+	if (entity.y == tile.y)
+	{
+		if (entity.x - 1 == tile.x)
+		{
+			return "a";
+		}
+		if (entity.x + 1 == tile.x)
+		{
+			return "d";
+		}
+	}
+}
+//same thing but with attack keys
+function PathToKeyAttack (entity, tile)
+{
+	if (entity.x == tile.x)
+	{
+		if (entity.y - 1 == tile.y)
+		{
+			return "up";
+		}
+		if (entity.y + 1 == tile.y)
+		{
+			return "down";
+		}
+	}
+	if (entity.y == tile.y)
+	{
+		if (entity.x - 1 == tile.x)
+		{
+			return "left";
+		}
+		if (entity.x + 1 == tile.x)
+		{
+			return "right";
+		}
+	}
+}
+
+// Returns a random target in a range (square)
+function LookForNewTarget (entity, range) {
+	var potentialTargets = [];
+	for (var i = entity.x - range; i <= entity.x + range; i++)
+	{
+		for (var j = entity.y - range; j <= entity.y + range; j++)
+		{
+			if (CheckBounds(0, AREA_SIZE - 1, [i, j]))
+			{
+				if (area[i][j].entities.length == 1)
+				{
+					potentialTargets.push(area[i][j].entities[0]);
+				}
+			}
+		}
+	}
+	if (potentialTargets.length != 0)
+	{
+		return potentialTargets[Math.floor(Math.random()*potentialTargets.length)];
+	}
+	else
+	{
+		return false;
 	}
 }
 
@@ -2184,21 +2439,49 @@ function Render () {
 	// targetY = player.y + 0.75;
 	// targetZ = player.z;
 
+
 	targetX = (player.x + 0.5 + targetX * 4) * 0.2;
 	targetY = (player.y + 0.5 + targetY * 4) * 0.2;
-	//targetZ = (player.z + targetZ * 4) * 0.2;
+	
 
 	cameraX = (targetX + cameraX * 4) * 0.2;
 	cameraY = (targetY + cameraY * 4) * 0.2;
-	//cameraZ = (targetZ + cameraZ * 4) * 0.2;
-
-	//cameraX = Math.round(cameraX); 
-	//cameraY = Math.round(cameraY); 
 	
-	//cameraX = player.x;
-	//cameraY = player.y;
-	//cameraZ = player.z;
-
+	//targetX = player.x + 0.5;
+	//targetY = player.y + 0.5;
+/*
+	if (targetX > cameraX)
+	{
+		cameraX += 1 / 30;
+		if (cameraX > targetX)
+		{
+			cameraX = targetX;
+		}
+	}
+	if (targetX < cameraX)
+	{
+		cameraX -= 1 / 30;
+		if (cameraX < targetX)
+		{
+			cameraX = targetX;
+		}
+	}
+	if (targetY > cameraY)
+	{
+		cameraY += 1 / 30;
+		if (cameraY > targetY)
+		{
+			cameraY = targetY;
+		}
+	}
+	if (targetY < cameraY)
+	{
+		cameraY -= 1 / 30;
+		if (cameraY < targetY)
+		{
+			cameraY = targetY;
+		}
+	}*/
 
 	//Draw 3D grid of tiles - canvas layer method
 	//for (var zi = Math.min(AREA_DEPTH - 1, Math.floor(cameraZ) + 18); zi > Math.max(-1, Math.floor(cameraZ) - 18); zi--)
@@ -2577,6 +2860,7 @@ window.addEventListener('mousedown', DoMouseDown, true);
 function DoMouseDown (e) {
 	if (!cursorVisible)
 	{
+		//Cheat mode only
 		ChangePosition(player, TileFromMouseX(), TileFromMouseY());
 	}
 	
@@ -2624,6 +2908,29 @@ function DoKeyPress (e) {
 	}
 }
 
+// "w", "a", "s", "d", "up", "down", "left", "right"
+function TrackKeyOn (key) {
+	for (var i = 0; i < keyPressedOrder.length; i++)
+	{
+		if (keyPressedOrder[i] == key)
+		{
+			return;
+		}
+	}
+	//put key at front of list: most recently pressed
+	keyPressedOrder.unshift(key);
+}
+function TrackKeyOff (key) {
+	for (var i = 0; i < keyPressedOrder.length; i++)
+	{
+		if (keyPressedOrder[i] == key)
+		{
+			keyPressedOrder.splice(i, 1);
+			return;
+		}
+	}
+}
+
 // Key Down event:
 // Does key input (sets booleans to true)
 // Prevents Back key from going back a page
@@ -2655,126 +2962,71 @@ function DoKeyDown (e) {
 		enterPressed = true;
 		return;
 	}
-	if (e.keyCode == 87) {
-		/*aKey = false;
-		sKey = false;
-		dKey = false;
-		if (!wKey)
-		{*/
-			wKey = true;
-			/*Control();
-			Action();
-		}*/
-		return;
-	}
-	if (e.keyCode == 65) {
-		/*wKey = false;
-		sKey = false;
-		dKey = false;
-		if (!aKey)
-		{*/
-			aKey = true;
-			/*Control();
-			Action();
-		}*/
-		return;
-	}
-	if (e.keyCode == 83) {
-		/*wKey = false;
-		aKey = false;
-		dKey = false;
-		if (!sKey)
-		{*/
-			sKey = true;
-			/*Control();
-			Action();
-		}*/
-		return;
-	}
-	if (e.keyCode == 68) {
-		/*wKey = false;
-		aKey = false;
-		sKey = false;
-		if (!dKey)
-		{*/
-			dKey = true;
-			/*Control();
-			Action();
-		}*/
-		return;
-	}
-	if (e.keyCode == 38) {
-		//EffectSlashUp();
-		upKey = true;
+	if (e.keyCode == 87)
+	{
+		TrackKeyOn("w");
 		//wKey = true;
 		return;
 	}
-	if (e.keyCode == 40) {
-		//EffectSlashDown();
-		downKey = true;
-		//sKey = true;
-		return;
-	}
-	if (e.keyCode == 37) {
-		//EffectSlashLeft();
-		leftKey = true;
+	if (e.keyCode == 65)
+	{
+		TrackKeyOn("a");
 		//aKey = true;
 		return;
 	}
-	if (e.keyCode == 39) {
-		//EffectSlashRight();
-		rightKey = true;
+	if (e.keyCode == 83)
+	{
+		TrackKeyOn("s");
+		//sKey = true;
+		return;
+	}
+	if (e.keyCode == 68)
+	{
+		TrackKeyOn("d");
 		//dKey = true;
+		return;
+	}
+	if (e.keyCode == 38)
+	{
+		TrackKeyOn("up");
+		//upKey = true;
+		return;
+	}
+	if (e.keyCode == 40)
+	{
+		TrackKeyOn("down");
+		//downKey = true;
+		return;
+	}
+	if (e.keyCode == 37)
+	{
+		TrackKeyOn("left");
+		//leftKey = true;
+		return;
+	}
+	if (e.keyCode == 39)
+	{
+		TrackKeyOn("right");
+		//rightKey = true;
 		return;
 	}
 
 	if (e.keyCode == 81) {
 		//q
 		SetTile(player.x, player.y, EMPTY, "", "#000000");
-		//StartLevel(2);
-		//SetTile(player.x, player.y, player.z, FLOOR, "bubbles", "#FF0000");
-		//TestColorAroundPlayer();
-		//FindPath(skeleton, area[player.x][player.y][player.z]);
-		//new Message("SSSSSS", skeleton);
-		//new Message("SSSSSSSSS", entities[4]);
-		/*if (pstartX == undefined)
-		{
-			pstartX = player.x;
-			pstartY = player.y;
-			pstartZ = player.z;
-		}
-		else
-		{
-			Debug("SetByXYZ(" +
-			pstartX + ", " + pstartY + ", " + pstartZ + ", " + 
-			player.x + ", " + player.y + ", " + player.z +
-			", true, \"~\", \"#FFFFFF\");");
-			pstartX = undefined;
-			pstartY = undefined;
-			pstartZ = undefined;
-		}*/
 	}
-	if (e.keyCode == 69) {
+	if (e.keyCode == 69)
+	{
 		//e
-		//ChangePosition(player, player.x, player.y, 0);
-		//Debug(NextSolidTileDown(area[player.x][player.y - 1][player.z]));
-		//FindPath(entities[2], area[player.x][player.y][player.z]);
-		//new Message("FFFFFFFF", entities[2]);
-		//new Message("OOOOOOOOOOO", entities[3]);
-		//Debug("MakeBush(" + player.x + ", " + player.y + ", " + player.z + ");");
 	}
-	if (e.keyCode == 90) {
+	if (e.keyCode == 90)
+	{
 		//z
-		//new Item(FALL, "circle1", "#0000FF", player.x + 1, player.y, 0);
-		//for (var i = 0; i < 34; i++){new Effect(["circle1", "circle2", "circle3", "circle4", "circle5", "circle6", "circle4", "circle3", "circle2", "circle1"], 2, "#FFFFFF", player.x, i, player.z);new Effect(["circle1", "circle2", "circle3", "circle4", "circle5", "circle6", "circle4", "circle3", "circle2", "circle1"], 2, "#FFFFFF",  i, player.y, player.z);}
-		//new Effect(["square1", "square2", "square3", "square4", "square5", "square6", "square7", "square8", "teleport1", "teleport2", "teleport3", "teleport4", "teleport5", "teleport6", "teleport7"], 1, "#FFFFFF", player.x, player.y, player.z - 1);
 		Debug("X: " + player.x + ", Y: " + player.y);
 	}
 	if (e.keyCode == 49)
 	{
 		// 1
-		Cast_SWITCH();
-		new Message("SWITCH", player);
 	}
 	//Debug(e.keyCode);
 }
@@ -2785,39 +3037,56 @@ function DoKeyDown (e) {
 // Key Up event:
 // Does key input (sets booleans to false)
 function DoKeyUp (e) {
-	if (e.keyCode == 87) {
-		wKey = false;
+	if (e.keyCode == 87)
+	{
+		TrackKeyOff("w");
+		//wKey = false;
 		return;
 	}
-	if (e.keyCode == 65) {
-		aKey = false;
+	if (e.keyCode == 65)
+	{
+		TrackKeyOff("a");
+		//aKey = false;
 		return;
 	}
-	if (e.keyCode == 83) {
-		sKey = false;
+	if (e.keyCode == 83)
+	{
+		TrackKeyOff("s");
+		//sKey = false;
 		return;
 	}
-	if (e.keyCode == 68) {
-		dKey = false;
+	if (e.keyCode == 68)
+	{
+		TrackKeyOff("d");
+		//dKey = false;
 		return;
 	}
-	if (e.keyCode == 38) {
-		upKey = false;
+	if (e.keyCode == 38)
+	{
+		TrackKeyOff("up");
+		//upKey = false;
 		return;
 	}
-	if (e.keyCode == 40) {
-		downKey = false;
+	if (e.keyCode == 40)
+	{
+		TrackKeyOff("down");
+		//downKey = false;
 		return;
 	}
-	if (e.keyCode == 37) {
-		leftKey = false;
+	if (e.keyCode == 37)
+	{
+		TrackKeyOff("left");
+		//leftKey = false;
 		return;
 	}
-	if (e.keyCode == 39) {
-		rightKey = false;
+	if (e.keyCode == 39)
+	{
+		TrackKeyOff("right");
+		//rightKey = false;
 		return;
 	}
-	if (e.keyCode == 13) {
+	if (e.keyCode == 13)
+	{
 		enterPressed = false;
 		return;
 	}

@@ -18,10 +18,16 @@ function AttackTo (attacker, X, Y) {
 		if (damage > defense)
 		{
 			defender.HP -= damage + defense;
+
+			if (defender == player) PlayerAttacked();
+
 			if (defender.HP <= 0)
 			{
 				EntityLevelUp(attacker);
 				EntityDie(defender);
+				if (attacker != player) new Message("I win", attacker);
+				attacker.state = WANDER;
+				attacker.target = undefined;
 			}
 		}
 		return; //Attacked
@@ -39,6 +45,19 @@ function EntityDie (entity) {
 }
 
 function EntityLevelUp (entity) {
-	EffectLevelUp(entity);
+	//EffectLevelUp(entity);
+
 	entity.MAX_HP += 1;
+	entity.HP += 1;
 }
+
+function PlayerAttacked () {
+	cameraX += Math.random() - 0.5;
+	cameraY += Math.random() - 0.5;
+	document.title = "HP: " + player.HP + "/" + player.MAX_HP;
+}
+
+function UnderAttack (entity, attacker) {
+	entity.state = ATTACK;
+	entity.target = attacker;
+} 

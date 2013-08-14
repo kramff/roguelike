@@ -6,9 +6,13 @@
 // Takes the speaking entity and the text
 function ProcessSpell (entity, text)
 {
-	if (entity == player && text == "SWITCH")
+	/*if (entity == player && text == "SWITCH")
 	{
 		Cast_SWITCH();
+	}*/
+	if (text == "FIREBALL")
+	{
+		EffectLightningOld(entity);
 	}
 	return false; // No magic in this version
 
@@ -62,12 +66,10 @@ function ProcessSpell (entity, text)
 
 function CheckMagicWord (text)
 {
-	if (text == "SWITCH")
+	if (text == "FIREBALL")
 	{
 		return true;
 	}
-
-
 
 	return false; // No magic in this version
 	
