@@ -31,3 +31,38 @@ function EffectLightningOld (entity) {
 	new Effect(["lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1"], 3, entity.color, entity.x - 1, entity.y);
 	new Effect(["lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1"], 3, entity.color, entity.x + 1, entity.y);
 }
+
+function EffectRegen (entity) {
+	new Effect(["square1", "square2", "square3", "square2", "square1"], 3, entity.color, entity.x, entity.y);
+}
+
+function BloodSplatter (entity) {
+	var randBlood = "blood" + Math.ceil(Math.random() * 9);
+	var bloodColor = BlendColors("#CC0000", "#600000", Math.random());
+	new Item(0, randBlood, bloodColor, entity.x, entity.y);
+	//new Effect([randBlood], 1000, bloodColor, entity.x, entity.y);
+}
+
+function EffectHeal (caster) {
+	new Effect(["heal1", "heal2", "heal3", "heal4", "heal5", "heal6", "heal7", "heal8", "heal9"], 3, caster.color, caster.x, caster.y);
+}
+
+function EffectQuake (caster, direction) {
+	if (direction == "right")
+	{
+		new Effect(["lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1"], 3, caster.color, caster.x + 1, caster.y);
+		new Effect(["nothing", "lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1"], 3, caster.color, caster.x + 2, caster.y);
+		new Effect(["nothing", "nothing", "lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1"], 3, caster.color, caster.x + 3, caster.y);
+		new Effect(["nothing", "nothing", "nothing", "lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1", "lightningR2", "lightningR3", "lightningR2", "lightningR1"], 3, caster.color, caster.x + 4, caster.y);
+	}
+}
+
+function EffectBeam (caster, x, y, delay) {
+	var animate = ["quake1", "quake2", "quake3", "quake4", "quake3", "quake2", "quake1", "nothing", "explode1", "explode2", "explode3", "explode4", "explode5", "explode6", "explode7"];
+	for (var i = 0; i < delay; i++)
+	{
+		animate.unshift("nothing");
+	}
+	new Effect(animate, 3, caster.color, x, y);
+}
+

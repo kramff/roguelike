@@ -1,0 +1,819 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"Import",
+				"ImportedEntities"
+			],
+			[
+				"Impo",
+				"ImportEntities"
+			],
+			[
+				"for",
+				"for	for (…) {…}"
+			],
+			[
+				"PathTo",
+				"PathToKeyAttack"
+			],
+			[
+				"entit",
+				"entities"
+			],
+			[
+				"Effec",
+				"EffectSlashUp"
+			],
+			[
+				"dow",
+				"downKey"
+			],
+			[
+				"TileFr",
+				"TileFromMouseY"
+			],
+			[
+				"TileFromMou",
+				"TileFromMouseY"
+			],
+			[
+				"curos",
+				"cursorVisible"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "index-host.html",
+			"settings":
+			{
+				"buffer_size": 994,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "network.js",
+			"settings":
+			{
+				"buffer_size": 1408,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "info_compressor.js",
+			"settings":
+			{
+				"buffer_size": 707,
+				"line_ending": "Windows",
+				"name": "console.log(\"hello\");"
+			}
+		},
+		{
+			"file": "language.js",
+			"settings":
+			{
+				"buffer_size": 1834,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "memory.js",
+			"settings":
+			{
+				"buffer_size": 322,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "effects.js",
+			"settings":
+			{
+				"buffer_size": 3633,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "magic.js",
+			"settings":
+			{
+				"buffer_size": 3825,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "combat.js",
+			"settings":
+			{
+				"buffer_size": 1832,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "script.js",
+			"settings":
+			{
+				"buffer_size": 79602,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "audio.js",
+			"settings":
+			{
+				"buffer_size": 1418,
+				"line_ending": "Windows",
+				"name": "var music = new Audio();"
+			}
+		},
+		{
+			"file": "client.js",
+			"settings":
+			{
+				"buffer_size": 1857,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "client_script.js",
+			"settings":
+			{
+				"buffer_size": 46853,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "image_load.js",
+			"settings":
+			{
+				"buffer_size": 4642,
+				"line_ending": "Windows",
+				"name": "console.log(\"why\");"
+			}
+		},
+		{
+			"file": "index.html",
+			"settings":
+			{
+				"buffer_size": 876,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Users/Mark/Documents/GitHub/roguelike/imageLoad.js",
+		"/C/Users/Mark/AppData/Roaming/Sublime Text 3/Packages/User/Distraction Free.sublime-settings",
+		"/C/Users/Mark/AppData/Roaming/Sublime Text 3/Packages/Default/Preferences.sublime-settings",
+		"/C/Users/Mark/Documents/GitHub/roguelike/render.js",
+		"/C/Users/Mark/Desktop/Node/Snowbound_Server/client.js",
+		"/C/Users/Mark/Desktop/Node/Snowbound_Server/app.js",
+		"/C/Users/Mark/Desktop/Node/Snowbound_Server/script.js",
+		"/C/Users/Mark/Desktop/Node/Snowbound_Server/index.html",
+		"/C/Users/Mark/Desktop/Node/adv_roguelike/script.js",
+		"/C/Users/Mark/Desktop/Node/adv_roguelike/effects.js",
+		"/C/Users/Mark/Desktop/Node/adv_roguelike/combat.js",
+		"/C/Users/Mark/Desktop/Node/adv_roguelike/memory.js",
+		"/C/Users/Mark/Desktop/Node/adv_roguelike/language.js",
+		"/C/Users/Mark/Desktop/Node/adv_roguelike/magic.js",
+		"/C/Users/Mark/Desktop/Node/adv_roguelike/index.html",
+		"/C/Users/Mark/Desktop/Node/adv_roguelike/effect.js",
+		"/C/Users/Mark/Documents/GitHub/Score-Conflict-2/sc2/app.js",
+		"/C/Users/Mark/Documents/GitHub/Score-Conflict-2/sc2/public/sc_game.js",
+		"/C/Users/Mark/Documents/GitHub/Score-Conflict-2/sc2/public/index.html",
+		"/C/Users/Mark/Desktop/Node/adv/script.js",
+		"/C/Users/Mark/Desktop/Node/sc2/app.js",
+		"/C/Users/Mark/Desktop/Node/sc2/public/index.html",
+		"/C/Users/Mark/Desktop/Node/sc2/public/sc_game.js"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"SendCommand",
+			"renderImage",
+			"SetUpArea",
+			"ansi",
+			"ready ",
+			"ready",
+			"Init",
+			"Init (",
+			"SetUpRender",
+			"Render (",
+			";\n",
+			"socket",
+			"underattack",
+			"Debug(",
+			"Debug (",
+			"BlendColors",
+			"Item",
+			"Lookfor",
+			"Find",
+			"ATTACK",
+			"mouseX =",
+			"mouseX",
+			"FLOOR",
+			"title",
+			"\"w\"",
+			"X",
+			"CameraX =",
+			"Action ()",
+			"Action (",
+			"Pathfinding",
+			"MoveEntity",
+			"ChangePosition",
+			"//***",
+			"wKey",
+			"player =",
+			"Color",
+			"Update (",
+			"Action",
+			"EffectSla",
+			"Effect",
+			"return;",
+			"moveDelay",
+			"upKey",
+			"A Error",
+			"Item",
+			"Arrow keys",
+			"Entity (",
+			"Effect",
+			"RenderReady",
+			"GetTypeFromXYZ",
+			"DrawTileContent",
+			"changePosition",
+			"DrawTileContent",
+			"DrawTileContet",
+			"DrawTileContent",
+			"RenderLayerE",
+			"SetByXYZ",
+			"SetUpArea",
+			"strokeStyle",
+			"ff",
+			"doMouse",
+			"mouseMove",
+			"600",
+			"ChangePosition",
+			"FLOOR",
+			"cameraX",
+			"Render (",
+			"Render",
+			"renderLayerE",
+			"newlevel",
+			"\\",
+			"newLevel",
+			"dlayer",
+			"canvdraw",
+			"canvdraw'",
+			"canv",
+			"canvDraw",
+			"Z",
+			"contextList",
+			"canvasList",
+			"console.log"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"Y"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 11,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "index-host.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 994,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								712,
+								712
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 228.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "network.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1408,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1322,
+								1322
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 741.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "info_compressor.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 707,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								34,
+								34
+							]
+						],
+						"settings":
+						{
+							"auto_name": "console.log(\"hello\");",
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "language.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1834,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								676,
+								679
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "memory.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 322,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "effects.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3633,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3629,
+								3629
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 384.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "magic.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3825,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1529,
+								1567
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1026.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "combat.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1832,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								604,
+								604
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "script.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 79602,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								47271,
+								47230
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 33227.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "audio.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1418,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1067,
+								1067
+							]
+						],
+						"settings":
+						{
+							"auto_name": "var music = new Audio();",
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 522.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "client.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1857,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1807,
+								1819
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1596.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "client_script.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 46853,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								14320,
+								14320
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 11267.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "image_load.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4642,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3065,
+								3065
+							]
+						],
+						"settings":
+						{
+							"auto_name": "console.log(\"why\");",
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 897.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "index.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 876,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								670,
+								670
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 171.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"project": "arena.sublime-project",
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"scrip",
+				"C:\\Users\\Mark\\Desktop\\Node\\adv_roguelike\\script.js"
+			],
+			[
+				"index",
+				"C:\\Users\\Mark\\Desktop\\Node\\adv_roguelike\\index.html"
+			],
+			[
+				"script.js",
+				"C:\\Users\\Mark\\Desktop\\Node\\adv_roguelike\\script.js"
+			],
+			[
+				"app",
+				"C:\\Users\\Mark\\Desktop\\Node\\sc2\\app.js"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

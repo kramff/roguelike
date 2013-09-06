@@ -25,7 +25,7 @@ var ctx = canvas.getContext('2d');
 var CANVAS_WIDTH = 630;
 var CANVAS_HEIGHT = 630;
 
-// Size of area (three-dimensional array of Tile objects)
+// Size of area (two-dimensional array of Tile objects)
 var AREA_SIZE = 35;
 var AREA_WIDTH = 35;
 var AREA_HEIGHT = 35;
@@ -97,11 +97,15 @@ var leftKey = false;
 var rightKey = false;
 var releasedAttack = false;
 
-var effectImages = ["circle1", "circle2", "circle3", "circle4", "circle5", "circle6", "lightning1", "lightning2", "lightning3",
+var effectImages = ["nothing", "circle1", "circle2", "circle3", "circle4", "circle5", "circle6", "lightning1", "lightning2", "lightning3",
 "lightningR1", "lightningR2", "lightningR3", "square1", "square2", "square3", "square4", "square5", "square6", "square7", "square8",
 "teleport1", "teleport2", "teleport3", "teleport4", "teleport5", "teleport6", "teleport7", "toggle", "triangle1", "triangle2", "triangle3", "triangle4", "triangle5", "triangle6",
 "slash1U", "slash2U", "slash3U", "slash4U", "slash5U", "slash1D", "slash2D", "slash3D", "slash4D", "slash5D", 
-"slash1L", "slash2L", "slash3L", "slash4L", "slash5L", "slash1R", "slash2R", "slash3R", "slash4R", "slash5R"];
+"slash1L", "slash2L", "slash3L", "slash4L", "slash5L", "slash1R", "slash2R", "slash3R", "slash4R", "slash5R",
+"blood1", "blood2", "blood3", "blood4", "blood5", "blood6", "blood7", "blood8", "blood9",
+"heal1", "heal2", "heal3", "heal4", "heal5", "heal6", "heal7", "heal8", "heal9",
+"quake1", "quake2", "quake3", "quake4",
+"explode1", "explode2", "explode3", "explode4", "explode5", "explode6", "explode7"];
 var entityImages = ["player", "A", "B", "C", "D", "E"];
 var floorImages = ["blocks", "boxes", "bubbles", "checker", "concentric", "cornered", "delete", "detail", "elegant", "faded", "fine", "invalid", "neat", "nice", "null", "ornate", "rim", "simple", "solid"];
 
@@ -224,34 +228,6 @@ function FilteredImage (name)
 	}
 
 }
-/*
-function DrawLayer () {
-	// tCanvas: Canvas for drawing tiles. "slow" style, only updates on a change
-	// Since tiles are limited to 30px by 30px, only the area for a tile needs updating
-	this.tCanvas = document.createElement('canvas');
-	this.tCanvas.setAttribute("id", "canvas" + z + "t");
-	this.tCanvas.width = 30 * AREA_WIDTH;
-	this.tCanvas.height = 30 * AREA_HEIGHT;
-	// tctx: context for tCanvas
-	this.tctx = this.tCanvas.getContext('2d');
-	// tDrawOn: boolean indicating if tCanvas should be drawn (any tiles on it)
-	this.tDrawOn = true;
-	// eCanvas: Canvas for drawing entities, effects, and anything else. "slow" style, only updates on a change
-	// effects and entities can go past the tile border so updates mean clear the whole canvas and draw each thing again.
-	this.eCanvas = document.createElement('canvas');
-	this.eCanvas.setAttribute("id", "canvas" + z + "t");
-	this.eCanvas.width = 30 * AREA_WIDTH;
-	this.eCanvas.height = 30 * AREA_HEIGHT;
-	// ectx: context for eCanvas
-	this.ectx = this.eCanvas.getContext('2d');
-	// eDrawOn: boolean indicating if eCanvas should be draw (any effects or anything on it)
-	this.eDrawOn = true;
-	this.eNeedsUpdate = false;
-	layerList.push(this);
-	this.entities = [];
-	this.effects = [];
-	this.items = [];
-}*/
 
 // Tile types:
 var EMPTY = 0;
@@ -374,6 +350,8 @@ function Entity (name, image, color, x, y) {
 	this.MAX_HP = 10;
 	this.MP = 0;
 	this.MAX_MP = 0;
+	this.REGEN = 0;
+	this.REGEN_TIME = 3;
 	//this.STAMINA = 100;
 	// events: list of events (functions) to call every frame
 	// Only the event at the start of the list is called. If it returns true, remove it
@@ -387,6 +365,7 @@ function Entity (name, image, color, x, y) {
 	//decision making stuff
 	this.state = WANDER;
 	this.target = undefined;
+	this.searchRange = 1;
 }
 
 
@@ -719,7 +698,7 @@ function SetUpEntities () {
 
 	for (var i = 0; i < 300; i++)
 	{
-		if (entityList.length < 100)
+		if (entityList.length < 50)
 		{
 			var randX = Math.floor(Math.random() * 35);
 			var randY = Math.floor(Math.random() * 35);
@@ -1068,6 +1047,31 @@ function ResetConnectionsXY(startX, startY, endX, endY) {
 				{
 					area[i][j].edges.length = 0;
 					SetUpConnections(area[i][j]);
+				}
+			}
+		}
+	}
+}
+
+//clears connections
+function ClearConnectionsXY(startX, startY, endX, endY) {
+	if (startX > endX)
+	{
+		startX = -(endX = (startX += endX) - endX) + startX;
+	}
+	if (startY > endY)
+	{
+		startY = -(endY = (startY += endY) - endY) + startY;
+	}
+	for (var i = startX - 1; i <= endX + 1; i++)
+	{
+		if (i >= 0 && i <= AREA_WIDTH - 1)
+		{
+			for (var j = startY - 1; j <= endY + 1; j++)
+			{
+				if (j >= 0 && j <= AREA_HEIGHT - 1)
+				{
+					area[i][j].edges.length = 0;
 				}
 			}
 		}
@@ -1729,6 +1733,7 @@ function Update () {
 		newLevel = false;
 	}*/
 	requestAnimFrame(Update);
+	VolumeAdjust();
 };
 /*
 function KeyTimer () {
@@ -1865,6 +1870,18 @@ function Action () {
 	for (var i = 0; i < entityList.length; i++)
 	{
 		var entity = entityList[i];
+		entity.REGEN ++;
+		if (entity.REGEN >= entity.REGEN_TIME)
+		{
+			entity.REGEN = 0;
+			if (entity.HP < entity.MAX_HP)
+			{
+				entity.HP += 1;
+				EffectRegen(entity);
+			}
+			if (entity.MP < entity.MAX_MP) entity.MP += 1;
+			
+		}
 		if (entity != player)
 		{
 			// Decide what to do (make a Think() function?)
@@ -1873,7 +1890,7 @@ function Action () {
 			if (entity.state == WANDER)
 			{
 				npcKey = "wasd"[Math.floor(Math.random() * 4)];
-				var targetTry = LookForNewTarget(entity, 2);
+				var targetTry = LookForNewTarget(entity, entity.searchRange);
 				if (i == 5)
 				{
 					Debug(targetTry);
@@ -1884,15 +1901,21 @@ function Action () {
 					if (entity.foundPath)
 					{
 						entity.state = ATTACK;
-						entity.target = targetTry
+						entity.target = targetTry;
+						entity.searchRange = 1;
 					}
 				}
+				if (!entity.target && entity.searchRange < 10)
+				{
+					entity.searchRange ++;
+				}
 			}
-			if (entity.state == ATTACK && entity.target)
+			if (entity.state == ATTACK && entity.target && entity.target.HP > 0)
 			{
 				if (entity.path[entity.path.length - 1] != entity.target.GetTile())
 				{
-					FindPath(entity, entity.target);
+					Debug("Trying to find path");
+					FindPath(entity, entity.target.GetTile());
 				}
 				if (entity.path[0] == entity.GetTile())
 				{
@@ -1908,6 +1931,12 @@ function Action () {
 					//step to [0]
 					npcKey = PathToKeyMove(entity, entity.path[0]);
 				}
+			}
+			if (entity.state == ATTACK && (!entity.target || entity.target.HP <= 0))
+			{
+				entity.state = WANDER;
+				entity.target = undefined;
+				npcKey = "wasd"[Math.floor(Math.random() * 4)];
 			}
 			EntityAction(entity, npcKey);
 			
@@ -2084,7 +2113,7 @@ function LookForNewTarget (entity, range) {
 		{
 			if (CheckBounds(0, AREA_SIZE - 1, [i, j]))
 			{
-				if (area[i][j].entities.length == 1)
+				if (area[i][j].entities.length == 1 && (entity.x != i || entity.y != j))
 				{
 					potentialTargets.push(area[i][j].entities[0]);
 				}
@@ -2564,7 +2593,7 @@ function Render () {
 		{
 			textGlow --;
 		}
-		promptMessage.color = BlendColors("#0040FF", player.color, Math.abs(textGlow - 25) / 25);
+		promptMessage.color = BlendColors("#FFFFFF", player.color, Math.abs(textGlow - 25) / 25);
 	}
 	else
 	{
@@ -2747,6 +2776,8 @@ function StaminaDisplay (stamina)
 // weight is 1 if completely color2, 0.5 if halfway between 1 and 2
 function BlendColors (color1, color2, weight)
 {
+	//Debug(color2);
+	//Debug(player.color);
 	var r1 = parseInt(color1.slice(1, 3), 16);
 	var g1 = parseInt(color1.slice(3, 5), 16);
 	var b1 = parseInt(color1.slice(5, 7), 16);
@@ -2770,7 +2801,7 @@ function BlendColors (color1, color2, weight)
 // Does fade out stuff
 function DrawTextBox (message) {
 	SetColor("#000000");
-	var mColor = (message.glow) ? BlendColors(message.color, message.glowColor, Math.random()) : message.color;
+	var mColor = (message.glow && message.glowColor) ? BlendColors(message.color, message.glowColor, Math.random()) : message.color;
 	ctx.strokeStyle = mColor;
 	var alpha;
 	if (message.fade > 0)
@@ -2891,8 +2922,8 @@ function DoKeyPress (e) {
 				var result = ProcessSpell(player, messageInput);
 				if (result)
 				{
-					mesg.glow = true;
-					mesg.glowColor = result;
+					//mesg.glow = true;
+					//mesg.glowColor = result;
 				}
 			}
 			messageInput = "";
@@ -3013,20 +3044,30 @@ function DoKeyDown (e) {
 
 	if (e.keyCode == 81) {
 		//q
-		SetTile(player.x, player.y, EMPTY, "", "#000000");
+		//SetTile(player.x, player.y, EMPTY, "", "#000000");
+		Debug("Q: All entities say the # of their target");
+		for (var i = 0; i < entityList.length; i++) {if (entityList[i].target) new Message("Target is #" + entityList.indexOf(entityList[i].target), entityList[i]); else new Message("No target", entityList[i]);}
 	}
 	if (e.keyCode == 69)
 	{
 		//e
+		// All entities speak their number
+		Debug("E: All entities say their own #");
+		for (var i = 0; i < entityList.length; i++) {new Message("I am #" + i, entityList[i]);}
 	}
 	if (e.keyCode == 90)
 	{
 		//z
-		Debug("X: " + player.x + ", Y: " + player.y);
+		//Debug("X: " + player.x + ", Y: " + player.y);
+		Debug("Z: All entities say their HP / MAX_HP");
+		for (var i = 0; i < entityList.length; i++) {new Message("My HP is " + entityList[i].HP + "/" + entityList[i].MAX_HP, entityList[i]);}
 	}
 	if (e.keyCode == 49)
 	{
 		// 1
+
+		// "respawn"
+		//player = new Entity("Player2", "player", RandomColor(), 17, 17);
 	}
 	//Debug(e.keyCode);
 }
