@@ -61,6 +61,9 @@ function EntityDie (entity) {
 	entityList.splice(entityList.indexOf(entity), 1);
 	//not needed because EffectDie() does it
 	//DrawTileContent(entity);
+
+	//Send death update
+	UpdateEntity(entity);
 }
 
 function EntityLevelUp (entity) {

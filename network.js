@@ -11,7 +11,6 @@ function getExtension(filename) {
 }
 
 var server = http.createServer(function (req, res) {
-	console.log("hello");
 	fs.readFile('.' + req.url, function (err, data) {
 		if (err)
 		{
@@ -37,7 +36,13 @@ server.listen(8080);
 
 var io = socketIO.listen(server);
 
+io.set('log level', 1);
+
 var something = undefined;
+
+var test1 = undefined;
+
+var test2 = undefined;
 
 io.sockets.on('connection', function (socket) {
 	Debug("connected");
@@ -50,20 +55,45 @@ io.sockets.on('connection', function (socket) {
 		Debug("E");
 		Debug(data);
 	});
-	//ClearConnectionsXY(0, 0, 34, 34);
-	//socket.emit("map", area);
 
-	socket.on("Request", function (data) {
-		Debug(data);
-		socket.emit("Something", something);
-	})
 	AreaCompressor();
 	socket.emit("compressedArea", compressedArea);
 	EntityCompressor();
 	socket.emit("compressedEntities", compressedEntities);
 
+	var clientEntity = undefined;
+
 	//Input
 	socket.on("Input", function (data) {
-		EntityAction(player, data);
+		if (clientEntity)
+		{
+			//EntityAction(clientEntity, data);
+			clientEntity.clientInput = data;
+		}
+	});
+
+	socket.on("ClientData", function (data) {
+		//var clientE = data;//new Entity(data.name, data.image, data.color, 15, 15);
+		if (data)
+		{
+			clientEntity = new Entity(data.name, data.image, data.color, 15, 15);
+			clientEntity.isClient = true;
+			socket.emit("ClientID", clientEntity.ID);
+		}
+		else
+		{
+			Debug("Error when getting client data");
+			socket.emit("ResendClientData", undefined);
+		}
+	});
+
+	socket.on("EntityRequest", function (data) {
+		var sendData = GetRequestedEntity(data);
+		socket.emit("EntityResponse", sendData);
+	});
+
+	socket.on("MessageOut", function (data) {
+		socket.broadcast.emit("MessageIn", {text:data, ID:clientEntity.ID});
+		new Message(data, clientEntity);
 	});
 });

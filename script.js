@@ -283,9 +283,14 @@ function PathNode (tile, dest, cost, parent) {
 var WANDER = 0;
 var ATTACK = 1; 
 
+//Keep track of entities
+var ID_Number = 1;
+
 // Entity constructor function
 // An Entity is a person or creature in the world
 function Entity (name, image, color, x, y) {
+	this.ID = ID_Number;
+	ID_Number += 1;
 	/*if (symbol.length != 1)
 	{
 		Debug("Entity constructor failed: symbol too long/short");
@@ -302,8 +307,6 @@ function Entity (name, image, color, x, y) {
 	this.image = image;
 	// color: What color is this entity
 	this.color = color;
-	// renderImage: Reference to filteredImage to use
-	this.renderImage = null;
 	// x, y, z: Current coordinates of this entity. (Area coordinates.)
 	// (Also, the content of that tile will have this entity in its content array)
 	this.x = x;
@@ -366,6 +369,11 @@ function Entity (name, image, color, x, y) {
 	this.state = WANDER;
 	this.target = undefined;
 	this.searchRange = 1;
+
+	this.isClient = false;
+	this.clientInput = "";
+
+	UpdateEntity(this);
 }
 
 
@@ -455,6 +463,7 @@ function Effect (imageList, delay, color, x, y)
 	{
 		DrawTileContent(this.GetTile());
 	}
+	UpdateEffect(this);
 }
 
 // Message constructor function
@@ -688,6 +697,7 @@ var player;
 function SetUpEntities () {
 	
 	player = new Entity("Player", "player", "#00FFFF", 17, 17);
+	player.isClient = true;
 	cameraX = player.x + 0.5;
 	cameraY = player.y + 0.5;
 	//cameraZ = player.z;
@@ -698,7 +708,7 @@ function SetUpEntities () {
 
 	for (var i = 0; i < 300; i++)
 	{
-		if (entityList.length < 50)
+		if (entityList.length < 10)
 		{
 			var randX = Math.floor(Math.random() * 35);
 			var randY = Math.floor(Math.random() * 35);
@@ -732,37 +742,6 @@ function ChangeLevel (num) {
 	newLevel = true;
 	levelNum = num;
 }
-
-
-/*
-function ItemsByXY (startX, startY, endX, endY, type, image, color) {
-	if (!CheckBounds(0, AREA_SIZE - 1, [startX, startY, endX, endY]))
-	{
-		Debug("Items By XYZ() Failed: limits");
-		return;
-	}
-	if (GetEffectImage(image) == -1)
-	{
-		Debug("invalid effect image file! tried " + image);
-		return;
-	}
-	if (startX > endX)
-	{
-		startX = -(endX = (startX += endX) - endX) + startX;
-	}
-	if (startY > endY)
-	{
-		startY = -(endY = (startY += endY) - endY) + startY;
-	}
-	for (var i = startX; i <= endX; i++)
-	{
-		for (var j = startY; j <= endY; j++)
-		{
-			new Item(type, image, color, i, j);
-		}
-	}
-}
-*/
 
 // Set one specific tile with a solidity, symbol, and color
 function SetTile (X, Y, type, tileset, color) {
@@ -858,35 +837,6 @@ function FloodFillC (X, Y) {
 	}
 }
 
-// Set a diagonal section
-/*function SetStairs (startX, startY, startZ, chX, chY, chZ, length, type, tileset, color) {
-	if (!CheckBounds(0, AREA_SIZE - 1, [startX, startY, startZ, startX + chX * length, startY + chY * length, startZ + chZ * length]))
-	{
-		Debug("SetStairs() Failed: limits");
-		return;
-	}
-	if (symbol.length != 1)
-	{
-		Debug("SetStairs() Failed: symbol too long/short");
-		return;
-	}
-	for (var i = 0; i < length; i++)
-	{
-		var curTile = area[startX + i * chX][startY + i * chY][startZ + i * chZ]
-		curTile.type = type;
-		curTile.tileset = tileset;
-		curTile.color = color;
-		if (renderReady)
-		{
-			RenderTile(curTile);
-		}
-	}
-	if (renderReady)
-	{
-		ResetConnectionsXYZ(startX, startY, startZ, startX + chX * length, startY + chY * length, startZ + chZ * length);
-	}
-	
-}*/
 
 // Set an area. X, Y, Z coordinates - box to opposite corner coordinates
 // (Inclusive)
@@ -1294,373 +1244,7 @@ function RenderLayerE ()
 		DrawTileContent(itemList[i].GetTile());
 		//turnLayerOff = false;
 	}
-	//if (turnLayerOff)
-	//{
-	//	drawLayer.eDrawOn = false;
-	//}
-	// Reset flags
-	/*for (var i = 0; i < drawLayer.entities.length; i++)
-	{
-		drawLayer.entities[i].GetTile().eDrawn = false;
-	}
-	for (var i = 0; i < drawLayer.effects.length; i++)
-	{
-		drawLayer.effects[i].GetTile().eDrawn = false;
-	}
-	for (var i = 0; i < drawLayer.items.length; i++)
-	{
-		drawLayer.items[i].GetTile().eDrawn = false;
-	}*/
 }
-
-// Clears from memory:
-// - all tiles except bottom layer,
-//   - all tile content: entities, items, effects
-// - all entities (player needs to be re-inserted)
-// - all effects
-// - all items
-// - all messages
-// - all information for entities, items, effects, from layerList
-/*
-function ResetLevel () {
-	var i = 0;
-	var j = 0;
-	var k = 0;
-	for (i = 0; i < AREA_WIDTH; i++)
-	{
-		for (j = 0; j < AREA_HEIGHT; j++)
-		{
-			// Skip bottom layer
-			for (k = 0; k < AREA_DEPTH - 1; k++)
-			{
-				var tile = area[i][j][k];
-				tile.type = EMPTY;
-				tile.previousType = EMPTY;
-				//tile.tileset = tileset; //unnecessary
-				//tile.color = color; //unnecessary
-				//tile.edges.length = 0; //Pathfinding
-				tile.effects.length = 0;
-				tile.entities.length = 0;
-				tile.items.length = 0;
-			}
-			// do some of the things to bottom layer
-			var bTile = area[i][j][AREA_DEPTH - 1];
-			//bTile.edges.length = 0; //Pathfinding
-			bTile.effects.length = 0;
-			bTile.entities.length = 0;
-			bTile.items.length = 0;
-		}
-	}
-	entityList.length = 0;
-	effectList.length = 0;
-	itemList.length = 0;
-	messages.length = 0;
-	for (i = 0; i < layerList.length; i++)
-	{
-		var drawLayer = layerList[i];
-		drawLayer.eDrawOn = false;
-		drawLayer.eNeedsUpdate = true;
-		drawLayer.effects.length = 0;
-		drawLayer.entities.length = 0;
-		drawLayer.items.length = 0;
-		drawLayer.tctx.clearRect(0, 0, 1050, 1050)
-	}
-
-	switchModeA = true;
-}*/
-
-// Set up levels based on number
-// re-insert player entity
-/*
-function StartLevel (nLevel) {
-	newLevel = false;
-	renderReady = false;
-	ResetLevel();
-	switch (nLevel)
-	{
-		case 1: // Center A
-		// Floor
-		SetByXYZ(15, 0, 20, 19, 34, 20, FLOOR, "concentric", "#FFFFFF");
-		SetByXYZ(0, 15, 20, 34, 19, 20, FLOOR, "concentric", "#FFFFFF");
-		SetByRect(9, 9, 20, 25, 25, 20, FLOOR, "solid", "#FFFFFF");
-		SetByXYZ(15, 17, 20, 19, 17, 20, FLOOR, "solid", "#FFFFFF");
-		SetByXYZ(17, 15, 20, 17, 19, 20, FLOOR, "solid", "#FFFFFF");
-		// Above
-		SetByXYZ(17, 9, 10, 17, 25, 10, WALL, "full", "#FFFFFF");
-		SetByXYZ(9, 17, 10, 25, 17, 10, WALL, "full", "#FFFFFF");
-		SetByRect(15, 15, 10, 19, 19, 10, WALL, "full", "#FFFFFF");
-		SetByXYZ(16, 16, 10, 18, 18, 10, EMPTY, "", "#000000");
-		// Below
-		SetByXYZ(17, 9, 30, 17, 25, 30, WALL, "full", "#FFFFFF");
-		SetByXYZ(9, 17, 30, 25, 17, 30, WALL, "full", "#FFFFFF");
-		SetByRect(15, 15, 30, 19, 19, 30, WALL, "full", "#FFFFFF");
-		SetByXYZ(16, 16, 30, 18, 18, 30, EMPTY, "", "#000000");
-
-		player = new Entity("Player", "player", "#00FFFF", 17, 17, 0);
-
-		var recover = new Entity("Recover", "A", "#010101", 34, 34, 34);
-		recover.events.push(function () {
-			recover.timer ++;
-			if (recover.timer >= 12 - 1)
-			{
-				if (player.x <= 14)
-				{
-					new Effect(["lightning1", "lightning2", "lightning3", "lightning2"], 3, "#FFFFFF", 0, 15, 20);
-					new Effect(["lightning2", "lightning3", "lightning2", "lightning1"], 3, "#FFFFFF", 0, 16, 20);
-					new Effect(["lightning3", "lightning2", "lightning1", "lightning2"], 3, "#FFFFFF", 0, 17, 20);
-					new Effect(["lightning2", "lightning1", "lightning2", "lightning3"], 3, "#FFFFFF", 0, 18, 20);
-					new Effect(["lightning1", "lightning2", "lightning3", "lightning2"], 3, "#FFFFFF", 0, 19, 20);
-				}
-				if (player.x >= 20)
-				{
-					new Effect(["lightning1", "lightning2", "lightning3", "lightning2"], 3, "#FFFFFF", 34, 15, 20);
-					new Effect(["lightning2", "lightning3", "lightning2", "lightning1"], 3, "#FFFFFF", 34, 16, 20);
-					new Effect(["lightning3", "lightning2", "lightning1", "lightning2"], 3, "#FFFFFF", 34, 17, 20);
-					new Effect(["lightning2", "lightning1", "lightning2", "lightning3"], 3, "#FFFFFF", 34, 18, 20);
-					new Effect(["lightning1", "lightning2", "lightning3", "lightning2"], 3, "#FFFFFF", 34, 19, 20);
-				}
-				if (player.y <= 14)
-				{
-					new Effect(["lightningR1", "lightningR2", "lightningR3", "lightningR2"], 3, "#FFFFFF", 15, 0, 20);
-					new Effect(["lightningR2", "lightningR3", "lightningR2", "lightningR1"], 3, "#FFFFFF", 16, 0, 20);
-					new Effect(["lightningR3", "lightningR2", "lightningR1", "lightningR2"], 3, "#FFFFFF", 17, 0, 20);
-					new Effect(["lightningR2", "lightningR1", "lightningR2", "lightningR3"], 3, "#FFFFFF", 18, 0, 20);
-					new Effect(["lightningR1", "lightningR2", "lightningR3", "lightningR2"], 3, "#FFFFFF", 19, 0, 20);
-				}
-				if (player.y >= 20)
-				{
-					new Effect(["lightningR1", "lightningR2", "lightningR3", "lightningR2"], 3, "#FFFFFF", 15, 34, 20);
-					new Effect(["lightningR2", "lightningR3", "lightningR2", "lightningR1"], 3, "#FFFFFF", 16, 34, 20);
-					new Effect(["lightningR3", "lightningR2", "lightningR1", "lightningR2"], 3, "#FFFFFF", 17, 34, 20);
-					new Effect(["lightningR2", "lightningR1", "lightningR2", "lightningR3"], 3, "#FFFFFF", 18, 34, 20);
-					new Effect(["lightningR1", "lightningR2", "lightningR3", "lightningR2"], 3, "#FFFFFF", 19, 34, 20);
-				}
-				RandomRain();
-				recover.timer = 0;
-			}
-			if (player.z == 34)
-			{
-				ChangePosition(player, 17, 17, 20);
-				LightningAroundEntity(player);
-			}
-			if (player.y == 0)
-			{
-				ChangeLevel(2);
-			}
-			if (player.x == 34)
-			{
-				ChangeLevel(3);
-			}
-			if (player.y == 34)
-			{
-				ChangeLevel(4);
-			}
-			if (player.x == 0)
-			{
-				ChangeLevel(5);
-			}
-			return false;
-		});
-		var testBlock = new Entity("Block", "B", "#FFFF00", 18, 18, 10);
-		testBlock.events.push(function () {
-			if (player.x == testBlock.x && player.y == testBlock.y && player.z == testBlock.z)
-			{
-				ChangePosition(testBlock, 2 * testBlock.x - testBlock.rpX, 2 * testBlock.y - testBlock.rpY, testBlock.z);
-			}
-			testBlock.rpX = player.x;
-			testBlock.rpY = player.y;
-			testBlock.rpZ = player.z;
-			return false;
-		});
-		break;
-		case 2: // North A - Focus on "SWITCH"
-		SetByXYZ(16, 28, 15, 18, 34, 15, FLOOR, "simple", "#FFFFFF");
-		SwitchAByXYZ(17, 26, 15, 17, 27, 15);
-		SetTile(17, 25, 15, FLOOR, "simple", "#FFFFFF");
-		SwitchAByXYZ(17, 23, 15, 17, 24, 15);
-		SetByXYZ(17, 21, 15, 20, 22, 15, FLOOR, "simple", "#FFFFFF");
-		SwitchBByXYZ(20, 23, 15, 20, 24, 15);
-		SwitchBByXYZ(18, 25, 15, 20, 25, 15);
-		SwitchBByXYZ(14, 25, 15, 16, 25, 15);
-		SwitchBByXYZ(14, 23, 15, 14, 24, 15);
-		SetByXYZ(11, 21, 15, 14, 22, 15, FLOOR, "simple", "#FFFFFF");
-
-
-
-		player = new Entity("Player", "player", "#00FFFF", 17, 32, 0);
-
-		var block1 = new Entity("block1", "B", "#FFFFFF", 0, 0, 30);
-		SetTile(0, 0, 33, "FLOOR", "simple", "#000000");
-
-		var swGuide = new Entity("swGuide", "A", "#FFFFFF", 19, 21, 15);
-		swGuide.events.push(function () {
-			if (player.y <= 22)
-			{
-				swGuide.outMesgQueue.push("hello", "try using SWITCH")
-				return true;
-			}
-			return false;
-		}, function () {
-			if (swGuide.inMesgQueue.length != 0)
-			{
-				if (swGuide.inMesgQueue[0].text == "SWITCH")
-				{
-					swGuide.outMesgQueue.push("cool");
-					return true;
-				}
-				else if (swGuide.inMesgQueue[0].text == "switch" || swGuide.inMesgQueue[0].text == "Switch")
-				{
-					swGuide.outMesgQueue.push("it needs to be ALL CAPS to work");
-				}
-				else
-				{
-					swGuide.outMesgQueue.push("nope");
-				}
-			}
-			return false;
-		}, function () {
-			if (player.x <= 14 && player.y <= 22)
-			{
-				SwitchAByXYZ(10, 21, 14, 10, 22, 14);
-				SwitchAByXYZ(9, 21, 13, 9, 22, 13);
-				SwitchAByXYZ(7, 21, 12, 8, 22, 12);
-				SwitchAByXYZ(7, 20, 11, 8, 20, 11);
-				SwitchAByXYZ(7, 19, 10, 8, 19, 10);
-				SwitchAByXYZ(7, 17, 9, 8, 18, 9);
-				SwitchAByXYZ(9, 17, 8, 9, 18, 8);
-				SwitchAByXYZ(10, 17, 7, 10, 18, 7);
-				SetByXYZ(11, 17, 6, 12, 18, 6, FLOOR, "simple", "#FFFFFF");
-				SwitchBByXYZ(13, 17, 15, 14, 18, 15);
-				SetByXYZ(15, 17, 15, 20, 18, 15, FLOOR, "simple", "#FFFFFF");
-				SetByXYZ(19, 13, 15, 20, 18, 15, FLOOR, "simple", "#FFFFFF");
-				return true;
-			}
-			return false;
-		}, function () {
-			if (player.x >= 15 && player.y <= 18)
-			{
-				swGuide.outMesgQueue.push("press 1 to quicksay SWITCH");
-				SetByRect(18, 10, 13, 21, 12, 21, WALL, "pattern", "#FFFFFF");
-				SetByXYZ(19, 12, 13, 20, 12, 21, EMPTY, "", "#000000");
-				SetByXYZ(19, 6, 23, 20, 12, 23, FLOOR, "simple", "#FFFFFF");
-				SwitchBByXYZ(19, 11, 15, 20, 12, 15);
-				SwitchAByXYZ(19, 11, 17, 20, 12, 17);
-				SwitchBByXYZ(19, 11, 19, 20, 12, 19);
-				SwitchAByXYZ(19, 11, 21, 20, 12, 21);
-				return true;
-			}
-			return false;
-		}, function () {
-			if (player.y <= 9)
-			{
-				SetByXYZ(19, 4, 23, 30, 5, 23, FLOOR, "simple", "#FFFFFF");
-				ChangePosition(block1, 21, 4, 23);
-				SwitchBByXYZ(23, 4, 21, 23, 5, 22);
-				SwitchAByXYZ(26, 4, 21, 26, 5, 22);
-				return true;
-			}
-			return false;
-		});
-		block1.events.push(function () {
-			if (player.x == block1.x && player.y == block1.y && player.z == block1.z)
-			{
-				//ChangePosition(block1, 2 * block1.x - block1.rpX, 2 * block1.y - block1.rpY, block1.z);
-				block1.moveX = block1.x - block1.rpX;
-				block1.moveY = block1.y - block1.rpY;
-				block1.moveZ = block1.z - block1.rpZ;
-			}
-			block1.rpX = player.x;
-			block1.rpY = player.y;
-			block1.rpZ = player.z;
-			if (block1.z == 34)
-			{
-				ChangePosition(block1, 21, 4, 23);
-				LightningAroundEntity(block1);
-			}
-			if (block1.x == 30 && block1.y == 4)
-			{
-				block1.timer = 0;
-				new Effect(["square1", "square2", "square3", "square4", "square5", "square6", "square7", "square8", "teleport1", "teleport2", "teleport3", "teleport4", "teleport5", "teleport6", "teleport7"], 2, "#FFFFFF", 30, 4, 22);
-				return true;
-			}
-			block1.timer ++;
-			if (block1.timer >= 18 - 1 && block1.x != 0)
-			{
-				new Effect(["triangle6", "triangle6", "triangle6", "triangle5", "triangle4", "triangle5"], 3, "#FFFFFF", 30, 4, 23);
-				block1.timer = 0;
-			}
-			return false;
-		}, function() {
-			block1.timer ++;
-			if (block1.timer >= 16)
-			{
-				ChangePosition(block1, 0, 0, 30);
-				return true;
-			}
-			return false;
-		});
-		break;
-		case 3: // East A - Focus on "FLOAT"
-
-		break;
-		case 4: // South A - Focus on "MAGNET"
-
-		break;
-		case 5: // West A - Focus on "HOOK"
-
-		break;
-	}
-	cameraX = player.x + 0.5;
-	cameraY = player.y + 0.5;
-	cameraZ = player.z;
-	targetX = player.x + 0.5;
-	targetY = player.y + 0.5;
-	targetZ = player.z;
-	promptMessage = new Message(">_", player);
-	renderReady = true;
-	SetUpAllConnections();
-
-	for (var k = 0; k < AREA_DEPTH; k++)
-	{
-		var dLayer = layerList[k];
-		for (var i = 0; i < AREA_WIDTH; i++)
-		{
-			for (var j = 0; j < AREA_HEIGHT; j++)
-			{
-				var tile = area[i][j][k];
-				GetTileNumber(tile);
-				if (tile.type == FLOOR)
-				{
-					dLayer.tctx.drawImage(filteredImages[GetFloorImage(tile.tileset)].GetColor(tile.color), tile.tNumber * 30, 0, 30, 30, 30 * tile.x, 30 * tile.y, 30, 30);
-				}
-				else if (tile.type == WALL)
-				{
-					dLayer.tctx.drawImage(filteredImages[GetWallImage(tile.tileset)].GetColor(tile.color), tile.tNumber * 30, 0, 30, 30, 30 * tile.x, 30 * tile.y, 30, 30);
-				}
-				else if (tile.type == OTHER)
-				{
-					dLayer.tctx.drawImage(filteredImages[GetOtherImage(tile.tileset)].GetColor(tile.color), tile.tNumber * 30, 0, 30, 30, 30 * tile.x, 30 * tile.y, 30, 30);
-				}
-				if (tile.type != EMPTY)
-				{
-					dLayer.tDrawOn = true;
-				}
-				tile.previousTNumber = tile.tNumber;
-				tile.previousType = tile.type;
-				tile.previousTileset = tile.tileset;
-				tile.previousColor = tile.color;
-			}
-		}
-	}
-	for (var e = 0; e < entityList.length; e++)
-	{
-		var entity = entityList[e];
-		layerList[entity.z].entities.push(entity);
-		layerList[entity.z].eNeedsUpdate = true;
-		layerList[entity.z].eDrawOn = true;
-	}
-}*/
-
 
 // Initializer function
 function Init () {
@@ -1688,23 +1272,23 @@ function Update () {
 	{
 		return;
 	}
-	//Control();
+	Control();
 	//Action();
 	//KeyTimer();
-	if (playerMoved)
+	if (npcMoveWait <= 0)
 	{
-		if (npcMoveWait <= 0)
-		{
-			Action();
-			playerMoveWait = 6;
-			npcMoveWait = 6;
-			playerMoved = false;
-		}
-		else
-		{
-			npcMoveWait -= 1;
-		}
+		Action();
+		//playerMoveWait = 6;
+		npcMoveWait = 30;
+		//playerMoved = false;
+		SendEntityUpdates();
+		SendEffectUpdates();
 	}
+	else
+	{
+		npcMoveWait -= 1;
+	}
+	/*
 	else if (!playerMoved)
 	{
 		if (playerMoveWait <= 0)
@@ -1722,38 +1306,15 @@ function Update () {
 			playerMoveWait -= 1;
 		}
 		
-	}
+	}*/
 
 	ItemAction(); //Only use for glowing items?
 	ProcessEffects();
 	Render();
-	/*if (newLevel && levelTransition > 20)
-	{
-		StartLevel(levelNum);
-		newLevel = false;
-	}*/
 	requestAnimFrame(Update);
 	VolumeAdjust();
 };
-/*
-function KeyTimer () {
-	if (Number(wKey) + Number(aKey) + Number(sKey) + Number(dKey) + Number(upKey) + Number(downKey) + Number(leftKey) + Number(rightKey) == 1)
-	{
-		inputDelay --;
-		if (inputDelay <= 0)
-		{
-			//wKey = false; aKey = false; sKey = false; dKey = false;
-			Control();
-			Action();
-			inputDelay = 10;
-		}
-	}
-	else
-	{
-		inputDelay = 0;
-	}
-}
-*/
+
 
 // Player movement with WASD
 function Control () {
@@ -1761,64 +1322,18 @@ function Control () {
 	{
 		if (player.HP > 0)
 		{
-			EntityAction(player, keyPressedOrder[0]);
+			//EntityAction(player, keyPressedOrder[0]);
+			player.clientInput = keyPressedOrder[0];
 		}
 		return true;
 	}
 	else
 	{
-		EntityAction(player, "");
+		//EntityAction(player, "");
+		player.clientInput = "";
 		return false;
 	}
-	/*if (newLevel)
-	{
-		return;
-	}*/
-	/*
-	if (aKey)
-	{
-		player.moveX = -1;
-		return;
-	}
-	if (dKey)
-	{
-		player.moveX = 1;
-		return;
-	}
-	if (wKey)
-	{
-		player.moveY = -1;
-		return;
-	}
-	if (sKey)
-	{
-		player.moveY = 1;
-		return;
-	}
-	if (upKey)
-	{
-		AttackTo(player, player.x, player.y - 1);
-		EffectSlashUp(player);
-		return;
-	}
-	if (downKey)
-	{
-		AttackTo(player, player.x, player.y + 1);
-		EffectSlashDown(player);
-		return;
-	}
-	if (leftKey)
-	{
-		AttackTo(player, player.x - 1, player.y);
-		EffectSlashLeft(player);
-		return;
-	}
-	if (rightKey)
-	{
-		AttackTo(player, player.x + 1, player.y);
-		EffectSlashRight(player);
-		return;
-	}*/
+	
 }
 
 // "take a turn" based on key input string
@@ -1882,7 +1397,16 @@ function Action () {
 			if (entity.MP < entity.MAX_MP) entity.MP += 1;
 			
 		}
-		if (entity != player)
+		// Client and local player don't use AI
+		if (entity.isClient)
+		{
+			if (entity.clientInput != "")
+			{
+				EntityAction(entity, entity.clientInput);
+				entity.clientInput = "";
+			}
+		}
+		else
 		{
 			// Decide what to do (make a Think() function?)
 			//EntityAction(entity, "")
@@ -1891,10 +1415,6 @@ function Action () {
 			{
 				npcKey = "wasd"[Math.floor(Math.random() * 4)];
 				var targetTry = LookForNewTarget(entity, entity.searchRange);
-				if (i == 5)
-				{
-					Debug(targetTry);
-				}
 				if (targetTry)
 				{
 					FindPath(entity, targetTry.GetTile())
@@ -1914,7 +1434,6 @@ function Action () {
 			{
 				if (entity.path[entity.path.length - 1] != entity.target.GetTile())
 				{
-					Debug("Trying to find path");
 					FindPath(entity, entity.target.GetTile());
 				}
 				if (entity.path[0] == entity.GetTile())
@@ -2248,6 +1767,8 @@ function ChangePosition (entity, newX, newY)
 
 	//RenderTile(prevTile);
 	//RenderTile(newTile);
+
+	UpdateEntity(entity);
 }
 
 // Return if a location is solid or not.
@@ -2314,7 +1835,7 @@ function FindPath (entity, destination) {
 			}
 		}
 	}
-	Debug("Can't find path");
+	//Debug("Can't find path");
 	entity.foundPath = false;
 	return;
 }
@@ -2916,6 +2437,7 @@ function DoKeyPress (e) {
 				isPromptMagic = false;
 				return;
 			}
+			SendMessage(messageInput);
 			var mesg = new Message(messageInput, player);
 			if (isPromptMagic)
 			{

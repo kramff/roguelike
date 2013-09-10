@@ -60,7 +60,9 @@ var playerMoveWait = 0;
 
 var inputDelay = 10;
 
-// Rendering data arrays
+//Network input stuff
+var lastKeySent = "";
+var needToSendKey = true;
 
 
 // Canvas for Tiles
@@ -133,6 +135,7 @@ function Tile (type, tileset, tNumber, color, x, y) {
 // Entity constructor function
 // An Entity is a person or creature in the world
 function Entity (name, image, color, x, y) {
+	this.ID = -1;//Not valid, or something
 	/*if (symbol.length != 1)
 	{
 		Debug("Entity constructor failed: symbol too long/short");
@@ -149,8 +152,6 @@ function Entity (name, image, color, x, y) {
 	this.image = image;
 	// color: What color is this entity
 	this.color = color;
-	// renderImage: Reference to filteredImage to use
-	this.renderImage = null;
 	// x, y, z: Current coordinates of this entity. (Area coordinates.)
 	// (Also, the content of that tile will have this entity in its content array)
 	this.x = x;
@@ -165,7 +166,7 @@ function Entity (name, image, color, x, y) {
 
 	if (renderReady)
 	{
-		DrawTileContent(this.GetTile());
+		//DrawTileContent(this.GetTile());
 	}
 }
 
@@ -336,16 +337,16 @@ var player;
 // Also, create promptMessage.
 function SetUpEntities () {
 	
-	player = new Entity("Player", "player", RandomColor(), 17, 17);
-	cameraX = player.x + 0.5;
-	cameraY = player.y + 0.5;
+	player = new Entity("Player", "player", RandomColor(), 15, 15);
+	cameraX = 15.5;
+	cameraY = 15.5;
 	//cameraZ = player.z;
-	targetX = player.x + 0.5;
-	targetY = player.y + 0.5;
+	targetX = 15.5;
+	targetY = 15.5;
 	//targetZ = player.z;
 	promptMessage = new Message(">_", player);
-	new Item(0, "circle3", "#00FF00", 18, 19);
-	new Effect(["circle1", "circle2", "circle3"], 10, "#FF00FF", 19, 19);
+	//new Item(0, "circle3", "#00FF00", 18, 19);
+	//new Effect(["circle1", "circle2", "circle3"], 10, "#FF00FF", 19, 19);
 
 }
 
@@ -594,351 +595,43 @@ function Update () {
 	}
 	Control();
 	//Action();
-	//KeyTimer();
-
 	//ItemAction(); //Only use for glowing items?
 	ProcessEffects();
 	Render();
-	/*if (newLevel && levelTransition > 20)
-	{
-		StartLevel(levelNum);
-		newLevel = false;
-	}*/
 	requestAnimFrame(Update);
 	VolumeAdjust();
 };
 
-
 // Player movement with WASD
 function Control () {
+	var keyToSend = "";
 	if (keyPressedOrder.length > 0)
 	{
-		//if (player.HP > 0)
-		//{
-		//	
-		//}
-		//EntityAction(player, keyPressedOrder[0]);
-		SendKeyInput(keyPressedOrder[0]);
-		return true;
+		keyToSend = keyPressedOrder[0];
 	}
 	else
 	{
-		//EntityAction(player, "");
-
-		return false;
+		keyToSend = "";
 	}
+	SendKeyInput(keyToSend);
+	/*
+	if (needToSendKey || lastKeySent != keyToSend)
+	{
+		needToSendKey = false;
+		lastKeySent = keyToSend;
+		SendKeyInput(keyToSend);
+	}*/
 }
 
 
-// "take a turn" based on key input string
-/*function EntityAction (entity, key) {
-	switch (key)
-	{
-		// Movement
-		case "w":
-		EntityMove(entity, 0, -1);
-		break;
-		case "a":
-		EntityMove(entity, -1, 0);
-		break;
-		case "s":
-		EntityMove(entity, 0, 1);
-		break;
-		case "d":
-		EntityMove(entity, 1, 0);
-		break;
-		//Attacking
-		case "up":
-		AttackTo(entity, entity.x, entity.y - 1);
-		EffectSlashUp(entity);
-		break;
-		case "down":
-		AttackTo(entity, entity.x, entity.y + 1);
-		EffectSlashDown(entity);
-		break;
-		case "left":
-		AttackTo(entity, entity.x - 1, entity.y);
-		EffectSlashLeft(entity);
-		break;
-		case "right":
-		AttackTo(entity, entity.x + 1, entity.y);
-		EffectSlashRight(entity);
-		break;
-		case "":
-		default:
-		//Do nothing
-		break;
-	}
-}*/
 
 
 // Iterate through entities, do movement and other per-frame interactions
 // NOW TURN BASED
 function Action () {
-	//return; // lazy fix
-	/*
-	for (var i = 0; i < entityList.length; i++)
-	{
-		var entity = entityList[i];
-		entity.REGEN ++;
-		if (entity.REGEN >= entity.REGEN_TIME)
-		{
-			entity.REGEN = 0;
-			if (entity.HP < entity.MAX_HP)
-			{
-				entity.HP += 1;
-				EffectRegen(entity);
-			}
-			if (entity.MP < entity.MAX_MP) entity.MP += 1;
-			
-		}
-		if (entity != player)
-		{
-			// Decide what to do (make a Think() function?)
-			//EntityAction(entity, "")
-			var npcKey = "";
-			if (entity.state == WANDER)
-			{
-				npcKey = "wasd"[Math.floor(Math.random() * 4)];
-				var targetTry = LookForNewTarget(entity, entity.searchRange);
-				if (i == 5)
-				{
-					Debug(targetTry);
-				}
-				if (targetTry)
-				{
-					FindPath(entity, targetTry.GetTile())
-					if (entity.foundPath)
-					{
-						entity.state = ATTACK;
-						entity.target = targetTry;
-						entity.searchRange = 1;
-					}
-				}
-				if (!entity.target && entity.searchRange < 10)
-				{
-					entity.searchRange ++;
-				}
-			}
-			if (entity.state == ATTACK && entity.target && entity.target.HP > 0)
-			{
-				if (entity.path[entity.path.length - 1] != entity.target.GetTile())
-				{
-					Debug("Trying to find path");
-					FindPath(entity, entity.target.GetTile());
-				}
-				if (entity.path[0] == entity.GetTile())
-				{
-					entity.path.shift();
-				}
-				if (entity.path[0] == entity.target.GetTile())
-				{
-					//attack target
-					npcKey = PathToKeyAttack(entity, entity.path[0]);
-				}
-				else if (entity.path.length > 0)
-				{
-					//step to [0]
-					npcKey = PathToKeyMove(entity, entity.path[0]);
-				}
-			}
-			if (entity.state == ATTACK && (!entity.target || entity.target.HP <= 0))
-			{
-				entity.state = WANDER;
-				entity.target = undefined;
-				npcKey = "wasd"[Math.floor(Math.random() * 4)];
-			}
-			EntityAction(entity, npcKey);
-			
-		}*/
-
-		
-		//var curTile = entity.GetTile();
-		//FindPath(entity, player.GetTile());
-
-		// Events
-		/*if (entity.events.length != 0)
-		{
-			if (entity.events[0]())
-			{
-				entity.events.shift();
-			}
-		}*/
-
-		//Moving and falling
-		//if (IsSolid(entity.x, entity.y, entity.z))
-		//{
-			//if (entity.moveDelay <= 0)
-			//{
-				/*
-				if (entity.path.length > 0)
-				{
-					if (entity.path[0] == curTile)
-					{
-						entity.path.shift();
-						//Okay try again.
-						if (entity.path.length > 0)
-						{
-							entity.moveX = entity.path[0].x - entity.x;
-							entity.moveY = entity.path[0].y - entity.y;
-						}
-					}
-					else
-					{
-						entity.moveX = entity.path[0].x - entity.x;
-						entity.moveY = entity.path[0].y - entity.y;
-					}
-				}
-				if (entity.moveX != 0 || entity.moveY != 0 )
-				{
-					var moved = EntityMove(entity, entity.moveX, entity.moveY);
-					entity.moveX = 0;
-					entity.moveY = 0;
-					//if (moved)
-					//{
-					//	entity.moveDelay = entity.MAX_MOVE_DELAY;
-					//}
-				}
-				*/
-			//}
-			//else
-			//{
-			//	entity.moveDelay --;
-			//}
-			
-			//entity.fallDelay = entity.MAX_FALL_DELAY;
-			//entity.fallSpeed = 0;
-		//}
-		/*else
-		{
-			entity.fallDelay --;
-			if (entity.fallDelay < 1)
-			{
-				EntityMove(entity,0, 0, 1);
-				entity.fallSpeed ++;
-				if (entity.fallSpeed >= entity.MAX_FALL_DELAY)
-				{
-					entity.fallSpeed --;
-				}
-				entity.fallDelay = entity.MAX_FALL_DELAY - entity.fallSpeed;
-			}
-		}*/
-		// Communication
-		/*ProcessMessage(entity);
-		if (entity.outMesgQueue.length > 0)
-		{
-			entity.respondDelay --;
-			if (entity.respondDelay <= 0)
-			{
-				new Message(entity.outMesgQueue.shift(), entity);
-				entity.respondDelay = entity.MAX_RESPOND_DELAY;
-			}
-		}
-		else
-		{
-			entity.respondDelay = entity.MAX_RESPOND_DELAY;
-		}
-		if (entity.STAMINA < 100)
-		{
-			entity.STAMINA ++;
-		}
-		// Items
-		if (curTile.items.length > 0)
-		{
-			for (var o = 0; o < curTile.items.length; o ++)
-			{
-				var item = curTile.items[o];
-				if (item.type == COLLECT)
-				{
-					layerList[item.z].eNeedsUpdate = true;
-					layerList[item.z].items.splice(layerList[item.z].items.indexOf(item), 1);
-					itemList.splice(itemList.indexOf(item), 1);
-					curTile.items.splice(o, 1);
-					o --;
-				}
-			}
-		}*/
-	//}
+	return;
+	//It's all in the host script
 }
-
-// entity and next path tile -> key to simulate press
-/*function PathToKeyMove (entity, tile)
-{
-	if (entity.x == tile.x)
-	{
-		if (entity.y - 1 == tile.y)
-		{
-			return "w";
-		}
-		if (entity.y + 1 == tile.y)
-		{
-			return "s";
-		}
-	}
-	if (entity.y == tile.y)
-	{
-		if (entity.x - 1 == tile.x)
-		{
-			return "a";
-		}
-		if (entity.x + 1 == tile.x)
-		{
-			return "d";
-		}
-	}
-}*/
-//same thing but with attack keys
-/*function PathToKeyAttack (entity, tile)
-{
-	if (entity.x == tile.x)
-	{
-		if (entity.y - 1 == tile.y)
-		{
-			return "up";
-		}
-		if (entity.y + 1 == tile.y)
-		{
-			return "down";
-		}
-	}
-	if (entity.y == tile.y)
-	{
-		if (entity.x - 1 == tile.x)
-		{
-			return "left";
-		}
-		if (entity.x + 1 == tile.x)
-		{
-			return "right";
-		}
-	}
-}*/
-
-// Returns a random target in a range (square)
-/*function LookForNewTarget (entity, range) {
-	var potentialTargets = [];
-	for (var i = entity.x - range; i <= entity.x + range; i++)
-	{
-		for (var j = entity.y - range; j <= entity.y + range; j++)
-		{
-			if (CheckBounds(0, AREA_SIZE - 1, [i, j]))
-			{
-				if (area[i][j].entities.length == 1 && (entity.x != i || entity.y != j))
-				{
-					potentialTargets.push(area[i][j].entities[0]);
-				}
-			}
-		}
-	}
-	if (potentialTargets.length != 0)
-	{
-		return potentialTargets[Math.floor(Math.random()*potentialTargets.length)];
-	}
-	else
-	{
-		return false;
-	}
-}*/
 
 function ItemAction () {
 	return; // not now
@@ -974,49 +667,7 @@ function ItemAction () {
 	}*/
 }
 
-// Try moving an entity, with a normal step
-/*function EntityMove (entity, x, y) {
-	if (!(((x == 1 || x == -1) && y == 0) || ((y == 1 || y == -1) && x == 0)))
-	{
-		return false;
-		// Entities can only move by one space, orthogonally
-	}
-	var ex = entity.x;
-	var ey = entity.y;
-	if (!CheckBounds(0, AREA_SIZE - 1, [ex + x, ey + y]))
-	{
-		return false;
-	}
-	if (area[ex + x][ey + y].entities.length != 0)
-	{
-		return false;
-	}
-	if (area[ex + x][ey + y].type == FLOOR)
-	{
-		ChangePosition(entity, ex + x, ey + y);
-		return true;
-	}
-	return false;
-	if (IsSolid(ex + x, ey + y, ez + z - 1))
-	{
-		if (!IsSolid(ex + x, ey + y, ez + z - 2) && !IsSolid(ex, ey, ez - 2))
-		{
-			//Move up step
-			ChangePosition(entity, ex + x, ey + y, ez + z - 1);
-			return true;
-		}
-	}
-	else
-	{
-		ChangePosition(entity, ex + x, ey + y, ez + z);
-		return true;
-	}
-	if (x != 0 && y != 0)
-	{
-		// May be moving diagonally into a wall. Split into X and Y movement
-		return EntityMove(entity, x, 0, 0) || EntityMove(entity, 0, y, 0);
-	}
-}*/
+
 
 // Actually move an entity to a location.
 // (Assumes new position is valid)
@@ -1037,17 +688,6 @@ function ChangePosition (entity, newX, newY)
 		Debug("Change position failed: entity not in previous location?");
 		return;
 	}
-	//var eLayer = layerList[entity.z];
-	//eLayer.eNeedsUpdate = true;
-	/*if (newZ != entity.z)
-	{
-		eLayer.entities.splice(eLayer.entities.indexOf(entity), 1);
-		var newLayer = layerList[newZ];
-		newLayer.entities.push(entity);
-		newLayer.eNeedsUpdate = true;
-		newLayer.eDrawOn = true;
-	}*/
-	
 
 	prevTile.entities.splice(index, 1);
 	newTile.entities.push(entity);
@@ -1060,128 +700,6 @@ function ChangePosition (entity, newX, newY)
 	//RenderTile(newTile);
 }
 
-// Return if a location is solid or not.
-// If not a valid tile, return true
-/*function IsSolid (x, y, z)
-{
-	if (x % 1 == 0 && y % 1 == 0 && z % 1 == 0)
-	{
-		if (CheckBounds(0, AREA_SIZE - 1, [x, y, z]))
-		{
-			return area[x][y][z].type != EMPTY;
-		}
-	}
-	//Default: Yes Solid
-	return true;
-}*/
-
-// Pathfinding - sets an entity's path array to a list of tiles to move to.
-// Also sets the entity's foundPath value
-// Based on pseudocode from http://en.wikipedia.org/wiki/A*_search_algorithm
-/*function FindPath (entity, destination) {
-	//return; //Pathfinding
-	var closedSet = [];
-	var openSet = [new PathNode(area[entity.x][entity.y], destination, 0, null)];
-	var cameFrom = [];
-	while (openSet.length > 0)
-	{
-		openSet.sort(SortNodes);
-		var current = openSet[0];
-		if (current.tile == destination)
-		{
-			var path = [];
-			entity.foundPath = true;
-			ReconstructPath(current, path);
-			entity.path = path;
-			return;
-		}
-		closedSet.push(openSet.shift());
-		for (var i = 0; i < current.tile.edges.length; i ++)
-		{
-			//Cannot move to a tile already containing an entity
-			if (current.tile.edges[i].entities.length == 0 || current.tile.edges[i] == destination)
-			{
-				var neighbor = new PathNode(current.tile.edges[i], destination, current.cost + 1, current);
-				var dup = CheckForDuplicate(closedSet, neighbor);
-				var closedCost = 9999;
-				if (dup != -1)
-				{
-					closedCost = closedSet[dup].cost;
-					if (neighbor.cost >= closedCost)
-					{
-						continue;
-					}
-				}
-				var openDup = CheckForDuplicate(openSet, neighbor);
-				if (openDup == -1)
-				{
-					openSet.push(neighbor);
-				}
-				else if (neighbor.cost < openSet[openDup].cost)
-				{
-					openSet[openDup] = neighbor;
-				}
-			}
-		}
-	}
-	Debug("Can't find path");
-	entity.foundPath = false;
-	return;
-}*/
-
-// Backtrack through nodes' parent data to recreate path
-/*function ReconstructPath (node, path)
-{
-	path.unshift(node.tile);
-	//node.tile.color = "blue"
-	if (node.parent != null)
-	{
-		ReconstructPath(node.parent, path);
-	}
-}*/
-
-
-//Return an index if there the tile is already in the array, -1 otherwise
-/*function CheckForDuplicate (array, newNode) {
-	var newTile = newNode.tile;
-	for (var i = 0; i < array.length; i++)
-	{
-		var oldTile = array[i].tile;
-		
-		if (oldTile == newTile)
-		{
-			return i;
-		}
-	}
-	return -1;
-}*/
-
-// Add a node to an array but only if there is no lower cost node already present
-// If there is one, replace it if the new one has a lower cost
-/*function AddNodeWithoutDuplicate (array, newNode) {
-	var newTile = newNode.tile;
-	for (var i = 0; i < array.length; i++)
-	{
-		var oldTile = array[i].tile;
-		
-		if (oldTile == newTile)
-		{
-			if (array[i].cost > newNode.cost)
-			{
-				array.splice(i, 1);
-				array.push(newNode);
-			}
-			return;
-		}
-	}
-	array.push(newNode);
-}*/
-
-// Sorting function for nodes, sorting by cost + distance estimate
-/*function SortNodes (a, b) {
-
-	return (a.cost + a.distEst) - (b.cost + b.distEst);
-}*/
 
 // Go through all the effects
 function ProcessEffects () {
@@ -1702,7 +1220,7 @@ function DoMouseDown (e) {
 	if (!cursorVisible)
 	{
 		//Cheat mode only
-		ChangePosition(player, TileFromMouseX(), TileFromMouseY());
+		//ChangePosition(player, TileFromMouseX(), TileFromMouseY());
 	}
 	
 }
@@ -1727,6 +1245,7 @@ function DoKeyPress (e) {
 				return;
 			}
 			var mesg = new Message(messageInput, player);
+			SendMessage(messageInput);
 			if (isPromptMagic)
 			{
 				var result = ProcessSpell(player, messageInput);
