@@ -1952,7 +1952,7 @@ function SetColor(color)
 // Set Alpha State function
 // Changes ctx's alpha only if necessary
 var ctxAlpha = 1;
-function SetAlpha(alpha)
+function SetAlpha (alpha)
 {
 	if (alpha != ctxAlpha)
 	{
