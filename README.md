@@ -1,4 +1,4 @@
-roguelike
+Experimental Roguelike
 =========
 
-roguelike game
+Run via the "Experimental_Roguelike.exe"
